@@ -8,7 +8,7 @@ this go package contains a variety of lumped-parameter, catchment-based contiuou
 * The Dawdy and O'Donnell (1965) model
 * The GR4J model (Perrin et.al., 2003)
 * The HBV model (Bergström, 1976, 1992; Seibert and McDonnell, 2010)
-* The Manabe (1969) simple storage model
+* The Manabe (1969) simple storage model with an added linear groundwater reservoir
 * The multilayer capacitance model (Struthers et.al., 2003)
 * The Quinn simple storage model (Quinn and Beven, 1993)
 * The SIXPAR/TWOPAR model (Gupta and Sorooshian, 1983; Duan et.al., 1992)

@@ -1,15 +1,15 @@
 package rainrun
 
-// Manabe reservoir
+// manabe reservoir
 // standard form of a hydrological "bucket" model
 // ref: Manabe, S., 1969. Climate and the Ocean Circulation 1: The Atmospheric Circulation and The Hydrology of the Earth's Surface. Monthly Weather Review 97(11). 739-744.
-type Manabe struct {
+type manabe struct {
 	res
 	expo, minsto float64
 }
 
-// New constructor
-func (m *Manabe) New(capacity, fexposed, minSto float64) {
+// new constructor
+func (m *manabe) new(capacity, fexposed, minSto float64) {
 	if capacity < 0. || minSto < 0. || minSto > capacity || fexposed < 0.0 {
 		panic("Manabe parameter error")
 	}
@@ -19,7 +19,7 @@ func (m *Manabe) New(capacity, fexposed, minSto float64) {
 }
 
 // UpdateExposure : change area of reservoir exposed to evaporative forcings
-func (m *Manabe) UpdateExposure(newExposure float64) {
+func (m *manabe) updateExposure(newExposure float64) {
 	if newExposure < 0. {
 		panic("UpdateExposure error")
 	}
@@ -32,13 +32,13 @@ func (m *Manabe) UpdateExposure(newExposure float64) {
 
 // updateCapacity : changes reservoir capacity
 // if this causes and reservoir overflow (ie, ChangeFactor < 1), it will be determined with the next state update
-func (m *Manabe) updateCapacity(changeFactor float64) {
+func (m *manabe) updateCapacity(changeFactor float64) {
 	m.cap *= changeFactor
 }
 
 // Update state
-func (m *Manabe) Update(p, ep, perc float64) (float64, float64, float64) {
-	q := m.res.Update(p)
+func (m *manabe) update(p, ep, perc float64) (float64, float64, float64) {
+	q := m.overflow(p)
 	if m.sto == 0. {
 		return 0., q, 0.
 	}
@@ -50,11 +50,11 @@ func (m *Manabe) Update(p, ep, perc float64) (float64, float64, float64) {
 	return a, q, g
 }
 
-func (m *Manabe) lossDirect(ep, perc float64) (float64, float64) {
+func (m *manabe) lossDirect(ep, perc float64) (float64, float64) {
 	var a, g float64
-	epx := m.expo * ep * m.res.StorageFraction() // effective PE
+	epx := m.expo * ep * m.storageFraction() // effective PE
 	if m.sto <= m.minsto {
-		if ep == 0. {
+		if ep < mingtzero {
 			return 0., 0.
 		}
 		if epx >= m.sto {
@@ -86,7 +86,7 @@ func (m *Manabe) lossDirect(ep, perc float64) (float64, float64) {
 	return a, g
 }
 
-func (m *Manabe) lossExponential(ep, perc, ts float64) (float64, float64) {
+func (m *manabe) lossExponential(ep, perc, ts float64) (float64, float64) {
 	var a, g float64
 	// first compute (direct) drainage
 	sFree := m.sto - m.minsto
@@ -100,6 +100,33 @@ func (m *Manabe) lossExponential(ep, perc, ts float64) (float64, float64) {
 		}
 	}
 	// next compute AET
-	a = m.res.DecayExp2(ep/ts, ts)
+	a = m.res.decayExp2(ep/ts, ts)
 	return a, g
+}
+
+// ManabeGW manabe reserveroir with an added exponential decay reservoir
+type ManabeGW struct {
+	r              manabe
+	gwsto, perc, k float64
+}
+
+// New constructor [capacity, fexposed, minSto, perc, kbf]
+func (m *ManabeGW) New(p ...float64) {
+	m.r.new(p[0], p[1], p[2])
+	m.perc = p[3]
+	m.k = p[4]
+}
+
+// Update state
+func (m *ManabeGW) Update(p, ep float64) (float64, float64, float64) {
+	a, q1, g := m.r.update(p, ep, m.perc)
+	m.gwsto += g
+	q2 := m.gwsto * (1. - m.k)
+	m.gwsto -= q2
+	return a, q1 + q2, g
+}
+
+// Storage returns manabe storage
+func (m *ManabeGW) Storage() float64 {
+	return m.r.Storage() + m.gwsto
 }

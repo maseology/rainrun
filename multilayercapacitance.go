@@ -18,9 +18,9 @@ func (m *MultiLayerCapacitance) New(coverDens, szDepth, porosity, fc, a, b, l1, 
 	m.cv = coverDens           // fraction vegetation cover
 	m.fc = fc / porosity       // fraction tension storage
 	smax := szDepth * porosity // total soil zone storage
-	m.s1.New(l1*smax, 0.)
-	m.s2.New(l2*smax, 0.)
-	m.s3.New(l3*smax, 0.)
+	m.s1.new(l1*smax, 0.)
+	m.s2.new(l2*smax, 0.)
+	m.s3.new(l3*smax, 0.)
 	m.a1 = l1 * a
 	m.a2 = l2 * a
 	m.a3 = l3 * a
@@ -32,7 +32,7 @@ func (m *MultiLayerCapacitance) Update(p, ep float64) (float64, float64, float64
 	var q float64
 	// layer 1
 	g := math.Pow(((m.s1.sto - m.s1.cap*m.fc) / m.a1), m.b)
-	e1 := (1.-m.cv)*ep*m.s1.StorageFraction() - m.cv*ep*math.Min(m.s1.sto, m.s1.cap*m.fc)
+	e1 := (1.-m.cv)*ep*m.s1.storageFraction() - m.cv*ep*math.Min(m.s1.sto, m.s1.cap*m.fc)
 	s1n := m.s1.sto + p - e1/(m.s1.cap+m.s2.cap)/m.fc - g
 	if s1n > m.s1.cap {
 		q = s1n - m.s1.cap

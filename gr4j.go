@@ -20,8 +20,8 @@ func (m *GR4J) New(stocap, gwstocap, x4, unitHydrographPartition, x2 float64) {
 	if x4 < 0.5 || unitHydrographPartition <= 0. || unitHydrographPartition >= 1.0 {
 		panic("GR4J input error")
 	}
-	m.sto.New(stocap, 0.)
-	m.gw.New(gwstocap, 0.)
+	m.sto.new(stocap, 0.)
+	m.gw.new(gwstocap, 0.)
 	m.x2 = x2
 	m.qsplt = unitHydrographPartition // I interpret this as a runoff coefficient
 	// unit hydrographs parameterization
@@ -49,15 +49,15 @@ func (m *GR4J) Update(p, ep float64) (float64, float64, float64) {
 	}
 	x1 := m.sto.cap // x1: maximum capacity of the SMA store
 	d1 := math.Tanh(pn / x1)
-	sf := m.sto.StorageFraction()
+	sf := m.sto.storageFraction()
 	ps := x1 * d1 * (1. - math.Pow(sf, 2.)) / (1. + d1*sf) // Ps: portion of rain infiltrating soils (production) store
 	if en > 0. {
 		d1 = math.Tanh(en / x1)
 		es = m.sto.sto * d1 * (2. - sf) / (1. + d1*(1.-sf)) // Es: soil evaporation
 	}
-	m.sto.Update(ps - es)
-	g := m.sto.sto * (1. - math.Pow(1.+math.Pow(4.*m.sto.StorageFraction()/9., 4.), -0.25)) // percolation from production zone
-	if m.sto.Update(-g) < 0. {                                                              // this line must be left here such that sto is updated
+	m.sto.update(ps - es)
+	g := m.sto.sto * (1. - math.Pow(1.+math.Pow(4.*m.sto.storageFraction()/9., 4.), -0.25)) // percolation from production zone
+	if m.sto.update(-g) < 0. {                                                              // this line must be left here such that sto is updated
 		panic("GR4J error: percolation")
 	}
 	pr := g + pn + ps
@@ -65,10 +65,10 @@ func (m *GR4J) Update(p, ep float64) (float64, float64, float64) {
 	q1 := m.updateUH2((1. - m.qsplt) * pr)
 
 	// x3 := m.gw.cap                                       // x3: reference capacity of GW store
-	fe := m.x2 * math.Pow(m.gw.StorageFraction(), 7./2.) // catchment GW exchange; x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
-	m.gw.Update(q9 + fe)
-	qr := m.gw.sto * (1. - math.Pow(1.+math.Pow(m.gw.StorageFraction(), 4.), -0.25))
-	if m.gw.Update(-qr) < 0. { // this line must be left here such that gw is updated
+	fe := m.x2 * math.Pow(m.gw.storageFraction(), 7./2.) // catchment GW exchange; x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	m.gw.update(q9 + fe)
+	qr := m.gw.sto * (1. - math.Pow(1.+math.Pow(m.gw.storageFraction(), 4.), -0.25))
+	if m.gw.update(-qr) < 0. { // this line must be left here such that gw is updated
 		panic("GR4J error: percolation")
 	}
 
