@@ -10,24 +10,25 @@ type GR4J struct {
 	x2, qsplt, x4 float64
 }
 
-// New contructor
-func (m *GR4J) New(stocap, gwstocap, x4, unitHydrographPartition, x2 float64) {
-	// StorageCapacity (x1: maximum capacity of the SMA store)
-	// GroundwaterStorageCapacity (x3: reference capacity of GW store)
+// New GR4J contructor
+// [stocap, gwstocap, x4, unitHydrographPartition, x2]
+func (m *GR4J) New(p ...float64) {
+	// sto: StorageCapacity (x1: maximum capacity of the SMA store)
+	// gw: GroundwaterStorageCapacity (x3: reference capacity of GW store)
 	// x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
 	// x4: unit hydrograph time parameter
-	// unitHydrographPartition, default = 0.9
-	if x4 < 0.5 || unitHydrographPartition <= 0. || unitHydrographPartition >= 1.0 {
+	// qsplt: unitHydrographPartition, default = 0.9
+	if p[2] < 0.5 || p[3] <= 0. || p[3] >= 1.0 {
 		panic("GR4J input error")
 	}
-	m.sto.new(stocap, 0.)
-	m.gw.new(gwstocap, 0.)
-	m.x2 = x2
-	m.qsplt = unitHydrographPartition // I interpret this as a runoff coefficient
+	m.sto.new(p[0], 0.)
+	m.gw.new(p[1], 0.)
+	m.x2 = p[4]
+	m.qsplt = p[3] // I interpret this as a runoff coefficient
 	// unit hydrographs parameterization
-	m.x4 = x4
-	n1f, x4d1 := math.Modf(x4)
-	n2f, x4d2 := math.Modf(2. * x4)
+	m.x4 = p[2]
+	n1f, x4d1 := math.Modf(p[2])
+	n2f, x4d2 := math.Modf(2. * p[2])
 	n1, n2 := int(n1f), int(n2f)
 	if x4d1 == 0. {
 		n1-- // dimension of UH1(0 To n1)
@@ -39,7 +40,7 @@ func (m *GR4J) New(stocap, gwstocap, x4, unitHydrographPartition, x2 float64) {
 	m.uh2 = make([]float64, n2, n2)
 }
 
-// Update state
+// Update state for daily inputs
 func (m *GR4J) Update(p, ep float64) (float64, float64, float64) {
 	var pn, en, es float64
 	if p >= ep {
@@ -117,4 +118,9 @@ func (m *GR4J) updateUH2(pr float64) float64 {
 		shsv = sh
 	}
 	return m.uh2[0]
+}
+
+// Storage returns total storage
+func (m *GR4J) Storage() float64 {
+	return m.sto.sto + m.gw.sto
 }

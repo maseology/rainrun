@@ -5,13 +5,6 @@ import "math"
 const mingtzero = 1e-10
 const minfrac = 1e-4
 
-// Lumper : interface to rainfall-runfall lumped models
-type Lumper interface {
-	New(p ...float64)
-	Update(p, ep float64) (float64, float64, float64)
-	Storage() float64
-}
-
 // res : simple linear reservoir
 type res struct {
 	sto, cap, k float64

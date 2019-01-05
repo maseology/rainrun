@@ -110,14 +110,15 @@ type ManabeGW struct {
 	gwsto, perc, k float64
 }
 
-// New constructor [capacity, fexposed, minSto, perc, kbf]
+// New ManabeGW constructor
+// [capacity, fexposed, minSto, perc, kbf]
 func (m *ManabeGW) New(p ...float64) {
 	m.r.new(p[0], p[1], p[2])
 	m.perc = p[3]
 	m.k = p[4]
 }
 
-// Update state
+// Update state for daily inputs
 func (m *ManabeGW) Update(p, ep float64) (float64, float64, float64) {
 	a, q1, g := m.r.update(p, ep, m.perc)
 	m.gwsto += g

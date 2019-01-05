@@ -10,24 +10,25 @@ type MultiLayerCapacitance struct {
 	a1, a2, a3, b, cv, fc float64
 }
 
-// New constructor
-func (m *MultiLayerCapacitance) New(coverDens, szDepth, porosity, fc, a, b, l1, l2, l3 float64) {
-	if l1+l2+l3 != 1. || coverDens < 0. || coverDens > 1. || fc < 0. || fc > porosity || porosity > 0. {
+// New MultiLayerCapacitance constructor
+// [coverDens, szDepth, porosity, fc, a, b, l1, l2, l3]
+func (m *MultiLayerCapacitance) New(p ...float64) {
+	if p[6]+p[7]+p[8] != 1. || p[0] < 0. || p[0] > 1. || p[3] < 0. || p[3] > p[2] || p[2] > 0. {
 		panic("MultiLayerCapacitance input error")
 	}
-	m.cv = coverDens           // fraction vegetation cover
-	m.fc = fc / porosity       // fraction tension storage
-	smax := szDepth * porosity // total soil zone storage
-	m.s1.new(l1*smax, 0.)
-	m.s2.new(l2*smax, 0.)
-	m.s3.new(l3*smax, 0.)
-	m.a1 = l1 * a
-	m.a2 = l2 * a
-	m.a3 = l3 * a
-	m.b = 1. / b
+	m.cv = p[0]         // fraction vegetation cover
+	m.fc = p[3] / p[2]  // fraction tension storage
+	smax := p[1] * p[2] // total soil zone storage
+	m.s1.new(p[6]*smax, 0.)
+	m.s2.new(p[7]*smax, 0.)
+	m.s3.new(p[8]*smax, 0.)
+	m.a1 = p[6] * p[4]
+	m.a2 = p[7] * p[4]
+	m.a3 = p[8] * p[4]
+	m.b = 1. / p[5]
 }
 
-// Update state
+// Update state for daily inputs
 func (m *MultiLayerCapacitance) Update(p, ep float64) (float64, float64, float64) {
 	var q float64
 	// layer 1
@@ -66,4 +67,9 @@ func (m *MultiLayerCapacitance) Update(p, ep float64) (float64, float64, float64
 	m.s2.sto = s2n
 	m.s3.sto = s3n
 	return a, q, g
+}
+
+// Storage returns total storage
+func (m *MultiLayerCapacitance) Storage() float64 {
+	return m.s1.sto + m.s2.sto + m.s3.sto
 }

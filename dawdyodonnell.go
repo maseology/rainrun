@@ -13,19 +13,20 @@ type DawdyODonnell struct {
 	gwcap, ksat  float64
 }
 
-// New constructor
-func (m *DawdyODonnell) New(ksat, depintCap, upszCap, gwCap, olfk, bfk float64) {
-	if ksat < 0. {
+// New DawdyODonnell constructor
+// [ksat, depintCap, upszCap, gwCap, olfk, bfk]
+func (m *DawdyODonnell) New(p ...float64) {
+	if p[0] < 0. {
 		panic("DawdyODonnell error, ksat < 0.0")
 	}
-	m.ksat = ksat
-	m.depint.new(depintCap, 1., 0.)          // R; depintCap = R*
-	m.ores.new(math.MaxFloat64, olfk)        // S; overland flow recession coefficient
-	m.upsz.new(math.MaxFloat64, 1., upszCap) // M; upszCap = M*
-	m.gwres.new(gwCap, bfk)                  // G; gwCap = G*; baseflow recession coefficient
+	m.ksat = p[0]
+	m.depint.new(p[1], 1., 0.)            // R; depintCap = R*
+	m.ores.new(math.MaxFloat64, p[4])     // S; overland flow recession coefficient
+	m.upsz.new(math.MaxFloat64, 1., p[2]) // M; upszCap = M*
+	m.gwres.new(p[3], p[5])               // G; gwCap = G*; baseflow recession coefficient
 }
 
-// Update state
+// Update state for daily inputs
 func (m *DawdyODonnell) Update(p, ep float64) (float64, float64, float64) {
 	// fill depressions & interception (R)
 	eR, q1, f := m.depint.update(p, ep, m.ksat) // set percolation rate (F) to vertical conductivity, and overflow (Q1) to S
@@ -40,4 +41,9 @@ func (m *DawdyODonnell) Update(p, ep float64) (float64, float64, float64) {
 	a := eM + eR                                // total ET = EM + ER
 	g := c - d                                  // net recharge
 	return a, q, g
+}
+
+// Storage returns total storage
+func (m *DawdyODonnell) Storage() float64 {
+	return m.depint.sto + m.upsz.sto + m.ores.sto + m.gwres.sto
 }

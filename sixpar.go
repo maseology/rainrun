@@ -10,17 +10,18 @@ type SIXPAR struct {
 	beta, z, x float64
 }
 
-// New constructor
-func (m *SIXPAR) New(upCap, lowCap, upK, lowK, z, x float64) {
+// New SIXPAR constructor
+// [upCap, lowCap, upK, lowK, z, x]
+func (m *SIXPAR) New(p ...float64) {
 	// for TWOPAR, set pLM=0, variables pLK, pZ, pX, will have no impact
-	m.up.new(upCap, upK)    // upper reservoir: fast subsurface flow (interflow)
-	m.low.new(lowCap, lowK) // update lower reservoir: slow subsurface flow (baseflow)
-	m.beta = lowCap * lowK
-	m.z = z
-	m.x = x
+	m.up.new(p[0], p[2])  // upper reservoir: fast subsurface flow (interflow)
+	m.low.new(p[1], p[3]) // update lower reservoir: slow subsurface flow (baseflow)
+	m.beta = p[1] * p[3]
+	m.z = p[4]
+	m.x = p[5]
 }
 
-// Update state
+// Update state for daily inputs
 func (m *SIXPAR) Update(p, ep float64) (float64, float64, float64) {
 	pn := p - ep // net precipitation less ET
 	var lt float64
@@ -34,4 +35,9 @@ func (m *SIXPAR) Update(p, ep float64) (float64, float64, float64) {
 	// add baseflow to runoff and update reservoirs
 	q += m.up.decayExp() + m.low.decayExp() // _uk * USt + _lk * LSt 'total discharge
 	return ep, q, g
+}
+
+// Storage returns total storage
+func (m *SIXPAR) Storage() float64 {
+	return m.up.sto + m.low.sto
 }

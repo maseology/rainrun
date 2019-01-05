@@ -6,30 +6,32 @@ import "math"
 // ref: Quinn P.F., K.J. Beven, 1993. Spatial and temporal predictions of soil moisture dynamics, runoff, variable source areas and evapotranspiration for Plynlimon, mid-Wales. Hydrological Processes 7. pp.425-448.
 // used in early formulations of TOPMODEL, neglecting capillary fringe
 type Quinn struct {
-	intc, imp, sz, grav             manabe
-	fimp, n, fc, zr, ksat, f, alpha float64
+	intc, imp, sz, grav                  manabe
+	fimp, n, fc, zr, ksat, f, alpha, Zwt float64
 }
 
-// New constructor
-func (m *Quinn) New(intercepCap, impStoCap, gwCap, fImp, ksat, rootZoneDepth, porosity, fieldCap, f, alpha float64) {
-	if fImp < 0. || fImp > 1. || fieldCap > porosity || ksat < 0. {
+// New Quinn constructor
+// [intercepCap, impStoCap, gwCap, fImp, ksat, rootZoneDepth, porosity, fieldCap, f, alpha, zwt]
+func (m *Quinn) New(p ...float64) {
+	if p[3] < 0. || p[3] > 1. || p[7] > p[6] || p[4] < 0. {
 		panic("Quinn model input error")
 	}
-	m.intc.new(intercepCap, 1., 0.)
-	m.imp.new(impStoCap, 1., 0.)
-	m.fimp = fImp
-	m.zr = rootZoneDepth
-	m.ksat = ksat
-	m.n = porosity
-	m.fc = fieldCap
-	m.sz.new(rootZoneDepth*(porosity-fieldCap), 1.-fImp, 0.)
-	m.grav.new(gwCap, 1.-fImp, 0.)
-	m.f = f
-	m.alpha = alpha
+	m.intc.new(p[0], 1., 0.)
+	m.imp.new(p[1], 1., 0.)
+	m.fimp = p[3]
+	m.zr = p[5]
+	m.ksat = p[4]
+	m.n = p[6]
+	m.fc = p[7]
+	m.sz.new(p[5]*(p[6]-p[7]), 1.-p[3], 0.)
+	m.grav.new(p[2], 1.-p[3], 0.)
+	m.f = p[8]
+	m.alpha = p[9]
+	m.Zwt = p[10] // setting as long-term average depth to watertable
 }
 
-// Update state
-func (m *Quinn) Update(p, ep, zwt float64) (float64, float64, float64) {
+// Update state for daily inputs
+func (m *Quinn) Update(p, ep float64) (float64, float64, float64) {
 	var q float64
 	pn, ae := p, ep
 	// interception
@@ -49,7 +51,7 @@ func (m *Quinn) Update(p, ep, zwt float64) (float64, float64, float64) {
 	_, q4, _ := m.grav.update(q3+g3, 0.0, 0.0) // excess moved to gravity storage
 	q += q4 * (1. - m.fimp)                    // add saturation excess runoff
 
-	gx := zwt * (m.n - m.fc)
+	gx := m.Zwt * (m.n - m.fc)
 	if gx-m.grav.sto < m.grav.cap { // ET from gravity reservoir when nearly saturated
 		if ae <= m.grav.cap-gx-m.grav.sto {
 			a5, _, _ := m.grav.update(0.0, ae, 0.0)
@@ -61,7 +63,12 @@ func (m *Quinn) Update(p, ep, zwt float64) (float64, float64, float64) {
 	}
 
 	// totals
-	_, _, g := m.grav.update(0.0, 0.0, math.Min(m.grav.sto, m.alpha*m.ksat*math.Exp(-m.f*zwt))) // recharge [L/TS]; setting pf = 0 and alpha sets qv = kv
-	a := ep - ae                                                                                //returns AET
+	_, _, g := m.grav.update(0.0, 0.0, math.Min(m.grav.sto, m.alpha*m.ksat*math.Exp(-m.f*m.Zwt))) // recharge [L/TS]; setting pf = 0 and alpha sets qv = kv
+	a := ep - ae                                                                                  // returns AET
 	return a, q, g
+}
+
+// Storage returns total storage
+func (m *Quinn) Storage() float64 {
+	return m.intc.sto + m.imp.sto + m.sz.sto + m.grav.sto
 }

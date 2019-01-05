@@ -10,24 +10,25 @@ type HBV struct {
 	fc, lp, beta, sm, suz, slz, uzl, k0, k1, k2, perc, lakefrac float64
 }
 
-// New constructor
-func (m *HBV) New(fc, lp, beta, uzl, k0, k1, k2, ksat, maxbas, lakeCoverFrac float64) {
-	if fracCheck(lp) || fracCheck(k0) || fracCheck(k1) || fracCheck(k2) {
+// New HBV constructor
+// [fc, lp, beta, uzl, k0, k1, k2, ksat, maxbas, lakeCoverFrac]
+func (m *HBV) New(p ...float64) {
+	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) {
 		panic("HBV input eror")
 	}
-	m.fc = fc                     // max basin moisture storage
-	m.lp = lp                     // soil moisture parameter
-	m.beta = beta                 // soil moisture parameter
-	m.uzl = uzl                   // upper zone fast flow limit
-	m.k0, m.k1, m.k2 = k0, k1, k2 // fast, slow, and baseflow recession coefficients
-	m.perc = ksat                 // upper-to-lower zone percolation, assuming percolation rate = Ksat
-	m.lakefrac = lakeCoverFrac    // lake fraction
+	m.fc = p[0]                         // max basin moisture storage
+	m.lp = p[1]                         // soil moisture parameter
+	m.beta = p[2]                       // soil moisture parameter
+	m.uzl = p[3]                        // upper zone fast flow limit
+	m.k0, m.k1, m.k2 = p[4], p[5], p[6] // fast, slow, and baseflow recession coefficients
+	m.perc = p[7]                       // upper-to-lower zone percolation, assuming percolation rate = Ksat
+	m.lakefrac = p[9]                   // lake fraction
 
-	m.qt = TriangularTF(maxbas, 0.5, 0.)             // MAXBAS: triangular weighted transfer function
+	m.qt = TriangularTF(p[8], 0.5, 0.)               // MAXBAS: triangular weighted transfer function
 	m.sq = make([]float64, len(m.qt)+1, len(m.qt)+1) // delayed runoff
 }
 
-// Update state
+// Update state for daily inputs
 func (m *HBV) Update(pn, ep float64) (float64, float64, float64) {
 	var a float64
 	if m.lakefrac > 0. {
@@ -90,4 +91,9 @@ func (m *HBV) hBVrunoff() (float64, float64) {
 	m.slz += g
 
 	return q, g
+}
+
+// Storage returns total storage
+func (m *HBV) Storage() float64 {
+	return m.suz + m.slz
 }

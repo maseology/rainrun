@@ -1,17 +1,20 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // Atkinson simple storage model, meant for hourly timesteps
 // based on formulation given in: Atkinson, S.E., M. Sivapalan, N.R. Viney, R.A. Woods, 2003. Predicting space-time variability of hourly streamflow and the role of climate seasonality: Mahurangi Catchment, New Zealand. Hydrological Processes 17. pp. 2171-2193.
 // original ref: Atkinson S.E., R.A. Woods, M. Sivapalan, 2002. Climate and landscape controls on water balance model complexity over changing timescales. Water Resource Research 38(12): 1314.
 // additional ref: Wittenberg H., M. Sivapalan, 1999. Watershed groundwater balance equation using streamflow recession analysis and baseflow separation. Journal of Hydrology 219, pp.20-33.
+// sto: current storage; sint current interception storage; cov: fractional forest cover; kb = 1/Tcbf
 type Atkinson struct {
 	sto, sint, sintc, cov, kb, a, b, sbc, sfc float64
 }
 
-// New constructor [sbc, sfc, coverdense, intcap, kb, a, b]
-// sto: current storage; sint current interception storage; cov: fractional forest cover; kb = 1/Tcbf
+// New Atkinson constructor
+// [sbc, sfc, coverdense, intcap, kb, a, b]
 func (m *Atkinson) New(p ...float64) {
 	if p[4] < 0. || p[4] > 1. || p[6] < 0. || p[6] > 1. || p[0] < p[1] {
 		println(p[0], p[1], p[4], p[6])
@@ -26,7 +29,7 @@ func (m *Atkinson) New(p ...float64) {
 	m.b = 1. / (1. - p[6]) // sub-surface flow coefficient [0,1]; reciprocal taken here as opposed to in Update method
 }
 
-// Storage returns manabe storage
+// Storage returns total storage
 func (m *Atkinson) Storage() float64 {
 	return m.sto + m.sint
 }
@@ -45,7 +48,7 @@ func (m *Atkinson) Update(p, ep float64) (float64, float64, float64) {
 	// return m.UpdateHourly(p, ep)
 }
 
-// UpdateHourly : update state at the intended hourly interval
+// UpdateHourly update state at the intended hourly interval
 func (m *Atkinson) UpdateHourly(p, ep float64) (float64, float64, float64) {
 	g := m.sto                           // saving antecedent storage
 	eveg, ebs := m.cov*ep, (1.-m.cov)*ep // A.4 transpiration; A.5 bare soil evaporation
