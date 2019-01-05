@@ -2,6 +2,8 @@ package rainrun
 
 import (
 	"math"
+
+	mm "github.com/maseology/mmaths"
 )
 
 // Atkinson simple storage model, meant for hourly timesteps
@@ -93,4 +95,17 @@ func (m *Atkinson) UpdateHourly(p, ep float64) (float64, float64, float64) {
 	q := qse + qss + qbf // total discharge
 
 	return a, q, g
+}
+
+// SampleSpace returns a hypercube from which the optimum resides
+func (m *Atkinson) SampleSpace(u []float64) []float64 {
+	const sd, n, fc = 1000.0, 0.3, 0.1
+	x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
+	x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
+	x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
+	x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
+	x4 := mm.LinearTransform(0., 1., u[4])        // kb
+	x5 := mm.LinearTransform(0., 100., u[5])      // a
+	x6 := mm.LinearTransform(0., 1., u[6])        // b
+	return []float64{x0, x1, x2, x3, x4, x5, x6}
 }
