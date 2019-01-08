@@ -104,7 +104,7 @@ func (m *Atkinson) SampleSpace(u []float64) []float64 {
 	x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
 	x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
 	x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	x4 := mm.LinearTransform(0., 1., u[4])        // kb
+	x4 := mm.LinearTransform(0.0001, 1., u[4])    // kb
 	x5 := mm.LinearTransform(0., 100., u[5])      // a
 	x6 := mm.LinearTransform(0., 1., u[6])        // b
 	return []float64{x0, x1, x2, x3, x4, x5, x6}
