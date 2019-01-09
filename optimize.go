@@ -5,12 +5,13 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"runtime"
 	"sort"
 	"time"
 
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/met"
-	"github.com/maseology/mmplt"
+	"github.com/maseology/mmio"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
 )
@@ -28,14 +29,16 @@ func Optimize(fp string) {
 
 	nDim := 7
 
-	uFinal, _ := glbopt.SCE(10, nDim, rng, genAtkinson, true)
+	uFinal, ofFinal := glbopt.SCE(runtime.GOMAXPROCS(0), nDim, rng, genAtkinson, true)
 	// uFinal, _ := glbopt.SurrogateRBF(100, nDim, rng, genAtkinson)
 
 	var m Lumper = &Atkinson{}
 	pFinal := m.SampleSpace(uFinal)
 	fmt.Printf("\nfinal parameters: %v\n", pFinal)
-	m.New(pFinal...)
-	evalPNG(m)
+	fmt.Printf("KGE (best): %.5f\n\n", 1.-ofFinal)
+
+	// m.New(pFinal...)
+	// evalPNG(m)
 }
 
 // // OptimizeAll to a given model structure
@@ -96,8 +99,8 @@ func evalPNG(m Lumper) {
 		o[i] = v[2]
 		s[i] = r
 	}
-	fmt.Println("KGE (final): ", fitness(o[365:], s[365:]))
-	mmplt.ObsSim("hyd.png", o, s)
+	// fmt.Println("KGE (final): ", fitness(o[365:], s[365:]))
+	mmio.ObsSim("hyd.png", o, s)
 }
 
 /////////////////////////////////////////
