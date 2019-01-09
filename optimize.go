@@ -28,8 +28,8 @@ func Optimize(fp string) {
 
 	nDim := 7
 
-	// uFinal, _ := glbopt.SCE(10, nDim, rng, genAtkinson, false)
-	uFinal, _ := glbopt.SurrogateRBF(100, nDim, rng, genAtkinson)
+	uFinal, _ := glbopt.SCE(10, nDim, rng, genAtkinson, true)
+	// uFinal, _ := glbopt.SurrogateRBF(100, nDim, rng, genAtkinson)
 
 	var m Lumper = &Atkinson{}
 	pFinal := m.SampleSpace(uFinal)
@@ -103,21 +103,23 @@ func evalPNG(m Lumper) {
 /////////////////////////////////////////
 //// Function that needs optimizing
 /////////////////////////////////////////
+func eval(m Lumper) float64 { // evaluate model
+	o := make([]float64, nfrc)
+	s := make([]float64, nfrc)
+	for i, v := range frc {
+		_, r, _ := m.Update(v[0], v[1])
+		o[i] = v[2]
+		s[i] = r
+	}
+	return 1. - fitness(o[365:], s[365:])
+}
+
 func genAtkinson(u []float64) float64 {
 	var m Lumper = &Atkinson{}
 	m.New(m.SampleSpace(u)...)
-	return func() float64 { // evaluate model
-		o := make([]float64, nfrc)
-		s := make([]float64, nfrc)
-		for i, v := range frc {
-			_, r, _ := m.Update(v[0], v[1])
-			o[i] = v[2]
-			s[i] = r
-		}
-		of := fitness(o[365:], s[365:])
-		if math.IsNaN(of) {
-			log.Fatalf("Objective function error, u: %v\n", u)
-		}
-		return 1. - of
-	}()
+	f := eval(m)
+	if math.IsNaN(f) {
+		log.Fatalf("Objective function error, u: %v\n", u)
+	}
+	return f
 }
