@@ -1,6 +1,8 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // MultiLayerCapacitance model
 // ref: Struthers, I., C. Hinz, M. Sivapalan, G. Deutschmann, F. Beese, R. Meissner, 2003. Modelling the water balance of a free-draining lysimeter using the downward approach. Hydrological Processes (17). pp. 2151-2169.
@@ -13,7 +15,7 @@ type MultiLayerCapacitance struct {
 // New MultiLayerCapacitance constructor
 // [coverDens, szDepth, porosity, fc, a, b, l1, l2, l3]
 func (m *MultiLayerCapacitance) New(p ...float64) {
-	if p[6]+p[7]+p[8] != 1. || p[0] < 0. || p[0] > 1. || p[3] < 0. || p[3] > p[2] || p[2] > 0. {
+	if p[6]+p[7]+p[8] != 1. || fracCheck(p[0]) || p[3] < 0. || p[3] > p[2] || p[2] > 0. {
 		panic("MultiLayerCapacitance input error")
 	}
 	m.cv = p[0]         // fraction vegetation cover
@@ -74,16 +76,19 @@ func (m *MultiLayerCapacitance) Storage() float64 {
 	return m.s1.sto + m.s2.sto + m.s3.sto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *MultiLayerCapacitance) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *MultiLayerCapacitance) SampleSpace(u []float64) []float64 {
+// 	const sd, n = 1000.0, 0.3
+// 	cv := mm.LinearTransform(0., 1., u[0])
+// 	x1 := mm.LinearTransform(0., sd, u[1])
+// 	uj0, uj1 := jointdist.Nested2(u[2], u[3])
+// 	x2 := mm.LinearTransform(0., n, uj0)
+// 	fc := mm.LinearTransform(0., n, uj1)
+// 	a := mm.LinearTransform(0., 100., u[4])
+// 	b := mm.LinearTransform(0., 1., u[5])
+// 	l := jointdist.SumToOne(u[6], u[7], u[8])
+// 	return []float64{cv, x1, x2, fc, a, b, l[0], l[1], l[2]}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *MultiLayerCapacitance) Ndim() int { return 9 }

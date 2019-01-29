@@ -1,6 +1,8 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // Quinn simple storage model
 // ref: Quinn P.F., K.J. Beven, 1993. Spatial and temporal predictions of soil moisture dynamics, runoff, variable source areas and evapotranspiration for Plynlimon, mid-Wales. Hydrological Processes 7. pp.425-448.
@@ -13,7 +15,7 @@ type Quinn struct {
 // New Quinn constructor
 // [intercepCap, impStoCap, gwCap, fImp, ksat, rootZoneDepth, porosity, fieldCap, f, alpha, zwt]
 func (m *Quinn) New(p ...float64) {
-	if p[3] < 0. || p[3] > 1. || p[7] > p[6] || p[4] < 0. {
+	if fracCheck(p[3]) || p[7] > p[6] || p[4] < 0. {
 		panic("Quinn model input error")
 	}
 	m.intc.new(p[0], 1., 0.)
@@ -73,16 +75,22 @@ func (m *Quinn) Storage() float64 {
 	return m.intc.sto + m.imp.sto + m.sz.sto + m.grav.sto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *Quinn) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *Quinn) SampleSpace(u []float64) []float64 {
+// 	const sd, n, fc = 1000.0, 0.3, 0.1
+// 	intCap := mm.LinearTransform(0., 0.1, u[0])
+// 	impCap := mm.LinearTransform(0., 0.1, u[1])
+// 	gwCap := mm.LinearTransform(0., 100., u[2])
+// 	fImp := mm.LinearTransform(0., 1., u[3])
+// 	ksat := mm.LogLinearTransform(1e-12, 1., u[4]) // ksat [m/s]
+// 	rootZoneDepth := mm.LinearTransform(0., sd, u[5])
+// 	porosity := mm.LinearTransform(0., n, u[6])
+// 	fieldCap := mm.LinearTransform(0., fc, u[7])
+// 	f := mm.LinearTransform(0., 1., u[8])
+// 	alpha := mm.LinearTransform(0., 1., u[9])
+// 	zwt := mm.LinearTransform(0., 10., u[10])
+// 	return []float64{intCap, impCap, gwCap, fImp, ksat, rootZoneDepth, porosity, fieldCap, f, alpha, zwt}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *Quinn) Ndim() int { return 11 }

@@ -1,6 +1,8 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // GR4J model
 // Perrin C., C. Michel, V. Andreassian, 2003. Improvement of a parsimonious model for streamflow simulation. Journal of Hydrology 279. pp. 275-289.
@@ -81,7 +83,7 @@ func (m *GR4J) updateUH1(pr float64) float64 {
 	// unit hydrograph 1 for the GR4J model
 	var sh, shsv float64
 	n := len(m.uh1)
-	for t := 0; t <= n; t++ {
+	for t := 0; t < n; t++ {
 		tf := float64(t)
 		if tf < m.x4 {
 			sh = math.Pow(tf/m.x4, 5./2.)
@@ -125,16 +127,14 @@ func (m *GR4J) Storage() float64 {
 	return m.sto.sto + m.gw.sto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *GR4J) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *GR4J) SampleSpace(u []float64) []float64 {
+// 	sto := mm.LinearTransform(0., 10., u[0])  // storage capacity
+// 	gw := mm.LinearTransform(0., 100., u[1])  // groundwater storage capacity
+// 	x2 := mm.LinearTransform(-10., 10., u[2]) // water exchange coefficient
+// 	x4 := mm.LinearTransform(0., 1., u[3])    // water exchange coefficient
+// 	return []float64{sto, gw, x2, x4}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *GR4J) Ndim() int { return 4 }

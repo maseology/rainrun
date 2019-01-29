@@ -48,16 +48,17 @@ func (m *DawdyODonnell) Storage() float64 {
 	return m.depint.sto + m.upsz.sto + m.ores.sto + m.gwres.sto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *DawdyODonnell) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *DawdyODonnell) SampleSpace(u []float64) []float64 {
+// 	ksat := mm.LogLinearTransform(1e-12, 1., u[0]) // ksat [m/s]
+// 	rs := mm.LinearTransform(0., 0.1, u[1])        // depression and interception capacity R*
+// 	ms := mm.LinearTransform(0., 1000., u[2])      // upper soil zone capacity M*
+// 	gs := mm.LinearTransform(0., 1000., u[3])      // lower soil zone capacity G*
+// 	s := mm.LogLinearTransform(1e-5, 1., u[4])     //  overland flow recession coefficient
+// 	b := mm.LogLinearTransform(1e-5, 1., u[5])     //  baseflow recession coefficient
+
+// 	return []float64{ksat, rs, ms, gs, s, b}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *DawdyODonnell) Ndim() int { return 6 }

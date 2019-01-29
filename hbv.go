@@ -1,6 +1,8 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // HBV model
 // Bergström, S., 1976. Development and application of a conceptual runoff model for Scandinavian catchments. SMHI RHO 7. Norrköping. 134 pp.
@@ -13,7 +15,7 @@ type HBV struct {
 // New HBV constructor
 // [fc, lp, beta, uzl, k0, k1, k2, ksat, maxbas, lakeCoverFrac]
 func (m *HBV) New(p ...float64) {
-	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) {
+	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) || fracCheck(p[9]) {
 		panic("HBV input eror")
 	}
 	m.fc = p[0]                         // max basin moisture storage
@@ -98,16 +100,21 @@ func (m *HBV) Storage() float64 {
 	return m.suz + m.slz
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *HBV) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *HBV) SampleSpace(u []float64) []float64 {
+// 	const sd, n = 1000.0, 0.3
+// 	fc := mm.LinearTransform(0., n, u[0])
+// 	lp := mm.LinearTransform(0., 1., u[1])
+// 	beta := mm.LinearTransform(0., 10., u[2])
+// 	uzl := mm.LinearTransform(0., 100., u[3]) // upper zone fast flow limit
+// 	k0 := mm.LinearTransform(0., 1., u[4])
+// 	k1 := mm.LinearTransform(0., 1., u[5])
+// 	k2 := mm.LinearTransform(0., 1., u[6])
+// 	perc := mm.LogLinearTransform(1e-12, 1., u[7]) // ksat [m/s]
+// 	maxbas := mm.LinearTransform(0., 1., u[8])
+// 	lakefrac := mm.LinearTransform(0., 1., u[9])
+// 	return []float64{fc, lp, beta, uzl, k0, k1, k2, perc, maxbas, lakefrac}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *HBV) Ndim() int { return 10 }

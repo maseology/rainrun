@@ -1,7 +1,7 @@
 package rainrun
 
 // SPLR : Simple Parallel Linear Reservoir
-// Buytaert, W., and K. Beven, 2011. Models as multiple working hypotheses hydrological simulation of tropical alpine . Hydrological Processes 25. pp. 1784–1799.
+// Buytaert, W., and K. Beven, 2011. Models as multiple working hypotheses hydrological simulation of tropical alpine. Hydrological Processes 25. pp. 1784–1799.
 // 3-reservoir Tank model
 type SPLR struct {
 	s1, s2, s3           float64
@@ -50,16 +50,15 @@ func (m *SPLR) Storage() float64 {
 	return m.s1 + m.s2 + m.s3
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *SPLR) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *SPLR) SampleSpace(u []float64) []float64 {
+// 	r12 := mm.LinearTransform(0., 1., u[0])
+// 	r23 := mm.LinearTransform(0., 1., u[1])
+// 	k1 := mm.LinearTransform(0., 1., u[2])
+// 	k2 := mm.LinearTransform(0., 1., u[3])
+// 	k3 := mm.LinearTransform(0., 1., u[4])
+// 	return []float64{r12, r23, k1, k2, k3}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *SPLR) Ndim() int { return 5 }

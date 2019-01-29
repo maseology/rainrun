@@ -1,6 +1,8 @@
 package rainrun
 
-import "math"
+import (
+	"math"
+)
 
 // SIXPAR model
 // ref: Gupta V.K., S. Sorooshian, 1983. Uniqueness and Observability of Conceptual Rainfall-Runoff Model Parameters: The Percolation Process Examined. Water Resources Research 19(1). pp.269-276.
@@ -42,16 +44,16 @@ func (m *SIXPAR) Storage() float64 {
 	return m.up.sto + m.low.sto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *SIXPAR) SampleSpace(u []float64) []float64 {
-	// const sd, n, fc = 1000.0, 0.3, 0.1
-	// x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	// x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	// x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	// x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	// x4 := mm.LinearTransform(0., 1., u[4])        // kb
-	// x5 := mm.LinearTransform(0., 100., u[5])      // a
-	// x6 := mm.LinearTransform(0., 1., u[6])        // b
-	// return []float64{x0, x1, x2, x3, x4, x5, x6}
-	return []float64{-99999.0}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *SIXPAR) SampleSpace(u []float64) []float64 {
+// 	upCap := mm.LinearTransform(0., 100., u[0])
+// 	lowCap := mm.LinearTransform(0., 100., u[1])
+// 	upK := mm.LinearTransform(0., 1., u[2])
+// 	lowK := mm.LinearTransform(0., 1., u[3])
+// 	z := mm.LinearTransform(0., 1., u[4])
+// 	x := mm.LinearTransform(0., 1., u[5])
+// 	return []float64{upCap, lowCap, upK, lowK, z, x}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *SIXPAR) Ndim() int { return 6 }

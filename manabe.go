@@ -1,10 +1,5 @@
 package rainrun
 
-import (
-	"github.com/maseology/mmaths"
-	"github.com/maseology/montecarlo/jointdist"
-)
-
 // manabe reservoir
 // standard form of a hydrological "bucket" model
 // ref: Manabe, S., 1969. Climate and the Ocean Circulation 1: The Atmospheric Circulation and The Hydrology of the Earth's Surface. Monthly Weather Review 97(11). 739-744.
@@ -137,15 +132,18 @@ func (m *ManabeGW) Storage() float64 {
 	return m.r.Storage() + m.gwsto
 }
 
-// SampleSpace returns a hypercube from which the optimum resides
-func (m *ManabeGW) SampleSpace(u []float64) []float64 {
-	const esdx = 1. // effective maximum soildepth
-	jn := jointdist.Nested(u[2], u[0])
-	u2t, u0t := jn[0], jn[1]
-	x0 := mmaths.LinearTransform(0., esdx, u0t)
-	x1 := u[1]
-	x2 := mmaths.LinearTransform(0., esdx, u2t)
-	x3 := mmaths.LogLinearTransform(1e-10, 1., u[3])
-	x4 := u[4]
-	return []float64{x0, x1, x2, x3, x4}
-}
+// // SampleSpace returns a hypercube from which the optimum resides
+// func (m *ManabeGW) SampleSpace(u []float64) []float64 {
+// 	const esdx = 1. // effective maximum soildepth
+// 	jn := jointdist.Nested(u[2], u[0])
+// 	u2t, u0t := jn[0], jn[1]
+// 	x0 := mmaths.LinearTransform(0., esdx, u0t)
+// 	x1 := u[1]
+// 	x2 := mmaths.LinearTransform(0., esdx, u2t)
+// 	x3 := mmaths.LogLinearTransform(1e-10, 1., u[3])
+// 	x4 := u[4]
+// 	return []float64{x0, x1, x2, x3, x4}
+// }
+
+// // Ndim returns the number of dimensions
+// func (m *ManabeGW) Ndim() int { return 5 }
