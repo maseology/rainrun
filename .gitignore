@@ -16,3 +16,5 @@
 # other
 /test
 /old
+*.png in /main
+*.csv in /main

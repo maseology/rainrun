@@ -16,5 +16,5 @@ func main() {
 		fmt.Printf("n processes: %v\n", runtime.GOMAXPROCS(0))
 	}()
 
-	optimize.Optimize("S:/rdrr/met/lumped/02EC018.met")
+	optimize.Optimize("S:/rdrr/met/lumped/02EC018.met", "HBV")
 }
