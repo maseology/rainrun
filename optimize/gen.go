@@ -1,25 +1,26 @@
-package main
+package optimize
 
 import (
 	"log"
 	"math"
 
-	. "github.com/maseology/rainrun"
+	"github.com/maseology/rainrun/inout"
+	rr "github.com/maseology/rainrun/models"
 )
 
-func eval(m Lumper) float64 { // evaluate model
-	o := make([]float64, nfrc)
-	s := make([]float64, nfrc)
-	for i, v := range frc {
+func eval(m rr.Lumper) float64 { // evaluate model
+	o := make([]float64, inout.Nfrc)
+	s := make([]float64, inout.Nfrc)
+	for i, v := range inout.FRC {
 		_, r, _ := m.Update(v[0], v[1])
 		o[i] = v[2]
 		s[i] = r
 	}
-	return 1. - fitness(o[365:], s[365:])
+	return fitness(o[365:], s[365:])
 }
 
 func genAtkinson(u []float64) float64 {
-	var m Lumper = &Atkinson{}
+	var m rr.Lumper = &rr.Atkinson{}
 	m.New(sampleAtkinson(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -29,8 +30,8 @@ func genAtkinson(u []float64) float64 {
 }
 
 func genDawdyODonnell(u []float64) float64 {
-	var m Lumper = &DawdyODonnell{}
-	m.New(sampleDawdyODonnell(u)...)
+	var m rr.Lumper = &rr.DawdyODonnell{}
+	m.New(sampleDawdyODonnell(u, inout.TS)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)
@@ -39,7 +40,7 @@ func genDawdyODonnell(u []float64) float64 {
 }
 
 func genGR4J(u []float64) float64 {
-	var m Lumper = &GR4J{}
+	var m rr.Lumper = &rr.GR4J{}
 	m.New(sampleGR4J(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -49,8 +50,8 @@ func genGR4J(u []float64) float64 {
 }
 
 func genHBV(u []float64) float64 {
-	var m Lumper = &HBV{}
-	m.New(sampleHBV(u)...)
+	var m rr.Lumper = &rr.HBV{}
+	m.New(sampleHBV(u, inout.TS)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)
@@ -59,7 +60,7 @@ func genHBV(u []float64) float64 {
 }
 
 func genManabeGW(u []float64) float64 {
-	var m Lumper = &ManabeGW{}
+	var m rr.Lumper = &rr.ManabeGW{}
 	m.New(sampleManabeGW(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -69,7 +70,7 @@ func genManabeGW(u []float64) float64 {
 }
 
 func genMultiLayerCapacitance(u []float64) float64 {
-	var m Lumper = &MultiLayerCapacitance{}
+	var m rr.Lumper = &rr.MultiLayerCapacitance{}
 	m.New(sampleMultiLayerCapacitance(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -79,7 +80,7 @@ func genMultiLayerCapacitance(u []float64) float64 {
 }
 
 func genQuinn(u []float64) float64 {
-	var m Lumper = &Quinn{}
+	var m rr.Lumper = &rr.Quinn{}
 	m.New(sampleQuinn(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -89,7 +90,7 @@ func genQuinn(u []float64) float64 {
 }
 
 func genSIXPAR(u []float64) float64 {
-	var m Lumper = &SIXPAR{}
+	var m rr.Lumper = &rr.SIXPAR{}
 	m.New(sampleSIXPAR(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
@@ -99,7 +100,7 @@ func genSIXPAR(u []float64) float64 {
 }
 
 func genSPLR(u []float64) float64 {
-	var m Lumper = &SPLR{}
+	var m rr.Lumper = &rr.SPLR{}
 	m.New(sampleSPLR(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {

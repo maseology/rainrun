@@ -95,5 +95,5 @@ func (r *res) decayExp2(decay, tsec float64) float64 {
 }
 
 func fracCheck(v float64) bool {
-	return v < 0. || v > 0.
+	return v < 0. || v > 1.
 }

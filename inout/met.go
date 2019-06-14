@@ -1,4 +1,4 @@
-package main
+package inout
 
 import (
 	"log"
@@ -9,29 +9,37 @@ import (
 	"github.com/maseology/goHydro/met"
 )
 
-var frc [][]float64
-var nfrc int
+// FRC holds forcing data
+var FRC [][]float64
 
-// loadMET collect the climate data, set to a global variable
-func loadMET(fp string) {
-	nfrc, frc = func() (int, [][]float64) {
-		frc, err := met.ReadMET(fp)
+// Nfrc number of timesteps
+var Nfrc int
+var dt []time.Time
+
+// TS timestep in seconds
+var TS float64
+
+// LoadMET collect the climate data, set to a global variable
+func LoadMET(fp string) {
+	Nfrc, FRC = func() (int, [][]float64) {
+		h, dc, err := met.ReadMET(fp)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		dt := make([]time.Time, 0, len(frc))
-		for i := range frc {
+		TS = h.IntervalSec()
+		dt = make([]time.Time, 0, len(dc))
+		for i := range dc {
 			dt = append(dt, i)
 		}
 		sort.Slice(dt, func(i, j int) bool { return dt[i].Before(dt[j]) })
 
 		afrc := make([][]float64, 0, len(dt))
 		chk := func(d time.Time, i int, p string) float64 {
-			if _, ok := frc[d]; !ok {
+			if _, ok := dc[d]; !ok {
 				log.Fatalln(d, "not included in met file")
 			}
-			if v1, ok := frc[d][i]; ok {
+			if v1, ok := dc[d][i]; ok {
 				return v1
 			}
 			log.Fatalln(p, "not included in met file")

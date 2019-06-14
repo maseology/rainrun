@@ -1,4 +1,4 @@
-package main
+package optimize
 
 import (
 	mm "github.com/maseology/mmaths"
@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	sd = 1.
+	sd = 10.
 	n  = 0.3
 	fc = 0.1
 )
@@ -15,24 +15,24 @@ const (
 
 //////////////// Atkinson (7)
 func sampleAtkinson(u []float64) []float64 {
-	x1 := mm.LinearTransform(0., sd*fc, u[1])     // threshold storage (sfc=D(fc-tr))
-	x0 := x1 + mm.LinearTransform(0., sd*n, u[0]) // watershed storage (sbc=D(n-tr))
-	x2 := mm.LinearTransform(0., 1., u[2])        // coverdense
-	x3 := mm.LinearTransform(0., 0.01, u[3])      // intcap
-	x4 := mm.LinearTransform(0.0001, 1., u[4])    // kb
-	x5 := mm.LinearTransform(0., 100., u[5])      // a
-	x6 := mm.LinearTransform(0., 1., u[6])        // b
+	x1 := mm.LinearTransform(0., sd*fc, u[1])      // threshold storage (sfc=D(fc-tr))
+	x0 := x1 + mm.LinearTransform(0., sd*n, u[0])  // watershed storage (sbc=D(n-tr))
+	x2 := mm.LinearTransform(0., 1., u[2])         // coverdense
+	x3 := mm.LinearTransform(0., 0.01, u[3])       // intcap
+	x4 := mm.LogLinearTransform(0.00001, 1., u[4]) // kb
+	x5 := mm.LinearTransform(0., 100., u[5])       // a
+	x6 := mm.LinearTransform(0., 1., u[6])         // b
 	return []float64{x0, x1, x2, x3, x4, x5, x6}
 }
 
 //////////////// DawdyODonnell (6)
-func sampleDawdyODonnell(u []float64) []float64 {
-	ksat := mm.LogLinearTransform(1e-12, 1., u[0]) // ksat [m/s]
-	rs := mm.LinearTransform(0., 0.1, u[1])        // depression and interception capacity R*
-	ms := mm.LinearTransform(0., 1000., u[2])      // upper soil zone capacity M*
-	gs := mm.LinearTransform(0., 1000., u[3])      // lower soil zone capacity G*
-	s := mm.LogLinearTransform(1e-5, 1., u[4])     // overland flow recession coefficient
-	b := mm.LogLinearTransform(1e-5, 1., u[5])     // baseflow recession coefficient
+func sampleDawdyODonnell(u []float64, ts float64) []float64 {
+	ksat := mm.LogLinearTransform(1e-12, 1., u[0]) * ts // ksat [m/ts]
+	rs := mm.LinearTransform(0., 0.1, u[1])             // depression and interception capacity R*
+	ms := mm.LinearTransform(0., 1000., u[2])           // upper soil zone capacity M*
+	gs := mm.LinearTransform(0., 1000., u[3])           // lower soil zone capacity G*
+	s := mm.LogLinearTransform(1e-5, 1., u[4])          // overland flow recession coefficient
+	b := mm.LogLinearTransform(1e-5, 1., u[5])          // baseflow recession coefficient
 	return []float64{ksat, rs, ms, gs, s, b}
 }
 
@@ -46,19 +46,19 @@ func sampleGR4J(u []float64) []float64 {
 	return []float64{sto, gw, x4, qsplt, x2}
 }
 
-//////////////// HBV (10)
-func sampleHBV(u []float64) []float64 {
-	fc := mm.LinearTransform(0., n, u[0])
+//////////////// HBV (9)
+func sampleHBV(u []float64, ts float64) []float64 {
+	fc := mm.LinearTransform(0., 1., u[0])
 	lp := mm.LinearTransform(0., 1., u[1])
 	beta := mm.LinearTransform(0., 10., u[2])
 	uzl := mm.LinearTransform(0., 100., u[3]) // upper zone fast flow limit
 	k0 := mm.LinearTransform(0., 1., u[4])
 	k1 := mm.LinearTransform(0., 1., u[5])
 	k2 := mm.LinearTransform(0., 1., u[6])
-	perc := mm.LogLinearTransform(1e-12, 1., u[7]) // ksat [m/s]
-	maxbas := mm.LinearTransform(0., 10., u[8])    // days
-	lakefrac := mm.LinearTransform(0., 1., u[9])
-	return []float64{fc, lp, beta, uzl, k0, k1, k2, perc, maxbas, lakefrac}
+	perc := mm.LogLinearTransform(1e-12, 1., u[7]) * ts // ksat [m/d]
+	maxbas := mm.LinearTransform(0., 10., u[8])         // days
+	// lakefrac := mm.LinearTransform(0., 1., u[9])
+	return []float64{fc, lp, beta, uzl, k0, k1, k2, perc, maxbas} //, lakefrac}
 }
 
 //////////////// ManabeGW (5)

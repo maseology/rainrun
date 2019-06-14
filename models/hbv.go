@@ -15,7 +15,7 @@ type HBV struct {
 // New HBV constructor
 // [fc, lp, beta, uzl, k0, k1, k2, ksat, maxbas, lakeCoverFrac]
 func (m *HBV) New(p ...float64) {
-	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) || fracCheck(p[9]) {
+	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) { // || fracCheck(p[9]) {
 		panic("HBV input eror")
 	}
 	m.fc = p[0]                         // max basin moisture storage
@@ -24,10 +24,10 @@ func (m *HBV) New(p ...float64) {
 	m.uzl = p[3]                        // upper zone fast flow limit
 	m.k0, m.k1, m.k2 = p[4], p[5], p[6] // fast, slow, and baseflow recession coefficients
 	m.perc = p[7]                       // upper-to-lower zone percolation, assuming percolation rate = Ksat
-	m.lakefrac = p[9]                   // lake fraction
+	m.lakefrac = 0.                     //p[9]                   // lake fraction
 
-	m.qt = TriangularTF(p[8], 0.5, 0.)               // MAXBAS: triangular weighted transfer function
-	m.sq = make([]float64, len(m.qt)+1, len(m.qt)+1) // delayed runoff
+	m.qt = TriangularTF(p[8], 0.5, 0.)  // MAXBAS: triangular weighted transfer function
+	m.sq = make([]float64, len(m.qt)+1) // delayed runoff
 }
 
 // Update state for daily inputs
@@ -39,8 +39,8 @@ func (m *HBV) Update(pn, ep float64) (float64, float64, float64) {
 	}
 	m.hBVinfiltration(pn * (1. - m.lakefrac))
 	a += m.hBVet(ep)
-	q, g := m.hBVrunoff()
-	return a, q, g
+	q, bf := m.hBVrunoff()
+	return a, q, bf
 }
 
 func (m *HBV) hBVlake(pn, ep float64) float64 {
@@ -59,7 +59,11 @@ func (m *HBV) hBVinfiltration(p float64) {
 		panic("HBV error, infiltration")
 	}
 	m.sm += p - i // soil zone moisture storage
-	m.suz += i    // upper zone moisture storage
+	if m.sm > m.fc {
+		m.suz += m.sm - m.fc // adding excess to upper zone moisture storage
+		m.sm = m.fc
+	}
+	m.suz += i // upper zone moisture storage
 }
 func (m *HBV) hBVet(ep float64) float64 {
 	etr := math.Min(1., m.sm/m.lp/m.fc) * ep
@@ -72,7 +76,7 @@ func (m *HBV) hBVet(ep float64) float64 {
 	return etr
 }
 func (m *HBV) hBVrunoff() (float64, float64) {
-	// soil zone accounting
+	// groundwater accounting
 	q0 := math.Max(m.k0*(m.suz-m.uzl), 0.0) // fast runoff
 	m.suz -= q0
 	q1 := m.k1 * m.suz // slow runoff
@@ -92,7 +96,7 @@ func (m *HBV) hBVrunoff() (float64, float64) {
 	m.suz -= g
 	m.slz += g
 
-	return q, g
+	return q, q2
 }
 
 // Storage returns total storage
