@@ -9,6 +9,9 @@ import (
 	"github.com/maseology/goHydro/met"
 )
 
+// HDR holds header info
+var HDR *met.Header
+
 // FRC holds forcing data
 var FRC [][]float64
 
@@ -21,7 +24,7 @@ var TS float64
 
 // LoadMET collect the climate data, set to a global variable
 func LoadMET(fp string) {
-	Nfrc, FRC = func() (int, [][]float64) {
+	Nfrc, FRC, HDR = func() (int, [][]float64, *met.Header) {
 		h, dc, err := met.ReadMET(fp)
 		if err != nil {
 			log.Fatalln(err)
@@ -53,6 +56,6 @@ func LoadMET(fp string) {
 			v[2] = chk(d, met.UnitDischarge, "UnitDischarge")
 			afrc = append(afrc, v)
 		}
-		return len(afrc), afrc
+		return len(afrc), afrc, h
 	}()
 }
