@@ -14,19 +14,17 @@ import (
 	rr "github.com/maseology/rainrun/models"
 )
 
-const (
-	ncmplx = 10
-	nrbf   = 100
-)
-
 var fitness = objfunc.RMSE
 
 // Optimize a single or set of rainrun models
 func Optimize(fp, mdl string) {
-	inout.LoadMET(fp)
+	inout.LoadMET(fp, true)
 
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
+
+	const nrbf = 100
+	ncmplx := 64
 
 	switch mdl {
 	case "Atkinson":
@@ -145,7 +143,7 @@ func Optimize(fp, mdl string) {
 // every possible permutation of p dimensions and w discrete
 // values.
 func permute(fp string) {
-	inout.LoadMET(fp)
+	inout.LoadMET(fp, true)
 	var m rr.Lumper = &rr.DawdyODonnell{}
 	for i, u := range smpln.Permutations(6, 3) {
 		fmt.Println(i, u)

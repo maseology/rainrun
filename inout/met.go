@@ -23,9 +23,9 @@ var dt []time.Time
 var TS float64
 
 // LoadMET collect the climate data, set to a global variable
-func LoadMET(fp string) {
+func LoadMET(fp string, print bool) {
 	Nfrc, FRC, HDR = func() (int, [][]float64, *met.Header) {
-		h, dc, err := met.ReadMET(fp)
+		h, dc, err := met.ReadMET(fp, print)
 		if err != nil {
 			log.Fatalln(err)
 		}
