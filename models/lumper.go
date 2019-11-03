@@ -1,6 +1,6 @@
 package rainrun
 
-// Lumper : interface to rainfall-runfall lumped models
+// Lumper : interface to lumped rainfall-runoff models
 type Lumper interface {
 	New(p ...float64)
 	Update(p, ep float64) (float64, float64, float64)
