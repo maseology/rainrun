@@ -61,6 +61,18 @@ func sampleHBV(u []float64, ts float64) []float64 {
 	return []float64{fc, lp, beta, uzl, k0, k1, k2, perc, maxbas} //, lakefrac}
 }
 
+//////////////// CCF-HBV (13)
+func sampleCCFHBV(u []float64, ts float64) []float64 {
+	uhbv := sampleHBV(u, ts)
+	tindex := mm.LogLinearTransform(0.0002, 0.05, u[9]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
+	ddfc := mm.LinearTransform(.01, 2.5, u[10])         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
+	baseT := mm.LinearTransform(-5., 5., u[11])         // base/critical temperature (°C)
+	tsf := mm.LinearTransform(0.1, 0.6, u[12])          // TSF (surface temperature factor), 0.1-0.5 have been used
+	// ddf := mm.LinearTransform(0.001, 0.008, u[1])           // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
+	uccf := []float64{tindex, ddfc, baseT, tsf}
+	return append(uhbv, uccf...)
+}
+
 //////////////// ManabeGW (5)
 func sampleManabeGW(u []float64) []float64 {
 	u2t, u0t := jointdist.Nested2(u[2], u[0])
