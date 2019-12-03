@@ -30,7 +30,7 @@ func CCFHBV(fp, logfp string) {
 
 	obs := make([]float64, io.Nfrc)
 	for i, v := range io.FRC {
-		obs[i] = v[4]
+		obs[i] = v[4] // [m/d]
 	}
 
 	rng := rand.New(mrg63k3a.New())
