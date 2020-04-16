@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	metdir = "S:/ormgp_lumped/met/"
+	metdir = "M:\\ORMGP\\met\\gauges_final_180329\\" // "S:/ormgp_lumped/met/"
 	logfp  = metdir + "gblopt.log"
 )
 
