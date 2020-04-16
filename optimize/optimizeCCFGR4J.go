@@ -16,8 +16,8 @@ import (
 	rr "github.com/maseology/rainrun/models"
 )
 
-// CCFHBV a single or set of rainrun models
-func CCFHBV(fp, logfp string) {
+// CCFGR4J a single or set of rainrun models
+func CCFGR4J(fp, logfp string) {
 	logger := mmio.GetInstance(logfp)
 	io.LoadMET(fp, true)
 
@@ -31,9 +31,9 @@ func CCFHBV(fp, logfp string) {
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
 
-	genCCFHBV := func(u []float64) float64 {
-		var m rr.CCFHBV
-		m.New(sampleCCFHBV(u, io.TS)...)
+	genCCFGR4J := func(u []float64) float64 {
+		var m rr.CCFGR4J
+		m.New(sampleCCFGR4J(u)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
@@ -50,8 +50,8 @@ func CCFHBV(fp, logfp string) {
 		return f
 	}
 
-	uFinal, _ := glbopt.SCE(ncmplx, 13, rng, genCCFHBV, true)
-	// uFinal, _ := glbopt.SurrogateRBF(nrbf, 13, rng, genCCFHBV)
+	uFinal, _ := glbopt.SCE(ncmplx, 9, rng, genCCFGR4J, true)
+	// uFinal, _ := glbopt.SurrogateRBF(nrbf, 9, rng, genCCFGR4J)
 
 	func() {
 

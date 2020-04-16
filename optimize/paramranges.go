@@ -36,14 +36,26 @@ func sampleDawdyODonnell(u []float64, ts float64) []float64 {
 	return []float64{ksat, rs, ms, gs, s, b}
 }
 
-//////////////// GR4J (5)
+//////////////// GR4J (4)
 func sampleGR4J(u []float64) []float64 {
-	sto := mm.LinearTransform(0., 10., u[0])  // storage capacity
-	gw := mm.LinearTransform(0., 100., u[1])  // groundwater storage capacity
-	x2 := mm.LinearTransform(-10., 10., u[4]) // water exchange coefficient
-	qsplt := mm.LinearTransform(0., 1., u[3])
-	x4 := mm.LinearTransform(0.5, 1., u[2]) // water exchange coefficient
-	return []float64{sto, gw, x4, qsplt, x2}
+	prd := mm.LinearTransform(0., 10., u[0])  // x1: "production storage" capacity (mm)
+	rte := mm.LinearTransform(0., 100., u[1]) // x3: "routing storage"/groundwater storage capacity (mm)
+	x2 := mm.LinearTransform(-10., 10., u[3]) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	x4 := mm.LinearTransform(.5, 10., u[2])   // x4: unit hydrograph time base (days)
+	// qsplt := mm.LinearTransform(0., 1., u[3]) // fixed in paper as 0.9
+	return []float64{prd, rte, x4, x2} //, qsplt}
+}
+
+//////////////// CCFGR4J (8)
+func sampleCCFGR4J(u []float64) []float64 {
+	ugr4j := sampleGR4J(u)
+	tindex := mm.LogLinearTransform(0.0002, 0.05, u[4]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
+	ddfc := mm.LinearTransform(.01, 2.5, u[5])          // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
+	baseT := mm.LinearTransform(-5., 5., u[6])          // base/critical temperature (°C)
+	tsf := mm.LinearTransform(0.1, 0.6, u[7])           // TSF (surface temperature factor), 0.1-0.5 have been used
+	// ddf := mm.LinearTransform(0.001, 0.008, u[1])           // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
+	uccf := []float64{tindex, ddfc, baseT, tsf}
+	return append(ugr4j, uccf...)
 }
 
 //////////////// HBV (9)

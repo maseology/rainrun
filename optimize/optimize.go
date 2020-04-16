@@ -14,6 +14,11 @@ import (
 	rr "github.com/maseology/rainrun/models"
 )
 
+const (
+	nrbf   = 100
+	ncmplx = 200
+)
+
 var fitness = objfunc.RMSE
 
 // Optimize a single or set of rainrun models

@@ -7,134 +7,143 @@ import (
 // GR4J model
 // Perrin C., C. Michel, V. Andreassian, 2003. Improvement of a parsimonious model for streamflow simulation. Journal of Hydrology 279. pp. 275-289.
 type GR4J struct {
-	sto, gw       res
-	uh1, uh2      []float64
-	x2, qsplt, x4 float64
+	prd, rte           res
+	uh1, uh2, cv1, cv2 []float64
+	x2                 float64
+	// x2, qsplt          float64
 }
 
 // New GR4J contructor
-// [stocap, gwstocap, x4, unitHydrographPartition, x2]
+// [prdcap, rtecap, x4, unitHydrographPartition, x2]
 func (m *GR4J) New(p ...float64) {
-	// sto: StorageCapacity (x1: maximum capacity of the SMA store)
-	// gw: GroundwaterStorageCapacity (x3: reference capacity of GW store)
+	// prd: x1: maximum capacity of the "production (SMA) store"
+	// rte: x3: reference capacity of "routing store"
 	// x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
 	// x4: unit hydrograph time parameter
-	// qsplt: unitHydrographPartition, default = 0.9
-	if p[2] < 0.5 || p[3] <= 0. || p[3] >= 1.0 {
+	// qsplt: unitHydrographPartition, fixed in paper to = 0.9
+	if p[2] < 0.5 { //|| p[4] <= 0. || p[4] >= 1.0 {
 		panic("GR4J input error")
 	}
-	m.sto.new(p[0], 0.)
-	m.gw.new(p[1], 0.)
-	m.x2 = p[4]
-	m.qsplt = p[3] // I interpret this as a runoff coefficient
+	m.prd.new(p[0], 0.)
+	m.rte.new(p[1], 0.)
+	m.x2 = p[3]
+	// m.qsplt = p[4] // I interpret this as a runoff coefficient
+
 	// unit hydrographs parameterization
-	m.x4 = p[2]
-	n1f, x4d1 := math.Modf(p[2])
-	n2f, x4d2 := math.Modf(2. * p[2])
-	n1, n2 := int(n1f), int(n2f)
-	if x4d1 == 0. {
-		n1-- // dimension of UH1(0 To n1)
-	}
-	if x4d2 == 0. {
-		n2-- // dimension of UH2(0 To n2)
-	}
-	m.uh1 = make([]float64, n1, n1)
-	m.uh2 = make([]float64, n2, n2)
+	x4 := p[2]
+	func() { // build UH1
+		n := int(math.Ceil(x4))
+		m.uh1 = make([]float64, n)
+		m.cv1 = make([]float64, n-1)
+		sh1 := make([]float64, n)
+		for t := 1; t < n; t++ {
+			tf := float64(t)
+			if tf < x4 {
+				sh1[t] = math.Pow(tf/x4, 2.5)
+			} else {
+				sh1[t] = 1.
+			}
+		}
+		for t := 0; t < n; t++ {
+			if t < n-1 {
+				m.uh1[t] = sh1[t+1] - sh1[t]
+			} else {
+				m.uh1[t] = 1. - sh1[t]
+			}
+		}
+	}()
+	func() { // build UH2
+		n := int(math.Ceil(2. * x4))
+		m.uh2 = make([]float64, n)
+		m.cv2 = make([]float64, n-1)
+		sh2 := make([]float64, n)
+		for t := 1; t < n; t++ {
+			tf := float64(t)
+			if tf <= x4 {
+				sh2[t] = math.Pow(tf/x4, 2.5) / 2.
+			} else if tf < 2.*x4 {
+				sh2[t] = 1. - math.Pow(2.-tf/x4, 2.5)/2.
+			} else {
+				sh2[t] = 1.
+			}
+		}
+		for t := 0; t < n; t++ {
+			if t < n-1 {
+				m.uh2[t] = sh2[t+1] - sh2[t]
+			} else {
+				m.uh2[t] = 1. - sh2[t]
+			}
+		}
+	}()
 }
 
 // Update state for daily inputs
 func (m *GR4J) Update(p, ep float64) (float64, float64, float64) {
 	var pn, en, es float64
 	if p >= ep {
-		pn = p - ep
+		pn = p - ep // eq.1
 	} else {
-		en = ep - p // available PET
+		en = ep - p // eq.2 available PET
 	}
-	x1 := m.sto.cap // x1: maximum capacity of the SMA store
+	x1 := m.prd.cap // x1: maximum capacity of the SMA store
 	d1 := math.Tanh(pn / x1)
-	sf := m.sto.storageFraction()
-	ps := x1 * d1 * (1. - math.Pow(sf, 2.)) / (1. + d1*sf) // Ps: portion of rain infiltrating soils (production) store
+	sf := m.prd.storageFraction()
+	ps := x1 * d1 * (1. - math.Pow(sf, 2.)) / (1. + d1*sf) // eq.3 Ps: portion of rain infiltrating soils (production) store
 	if en > 0. {
 		d1 = math.Tanh(en / x1)
-		es = m.sto.sto * d1 * (2. - sf) / (1. + d1*(1.-sf)) // Es: soil evaporation
+		es = m.prd.sto * d1 * (2. - sf) / (1. + d1*(1.-sf)) // eq.4 Es: soil evaporation
 	}
-	m.sto.update(ps - es)
-	g := m.sto.sto * (1. - math.Pow(1.+math.Pow(4.*m.sto.storageFraction()/9., 4.), -0.25)) // percolation from production zone
-	if m.sto.update(-g) < 0. {                                                              // this line must be left here such that sto is updated
-		panic("GR4J error: percolation")
+	m.prd.update(ps - es) // eq.5
+	if m.prd.storageFraction() > 1.000001 {
+		println(m.prd.sto, m.prd.cap, ps, es)
+		panic("GR4J error: production store error")
 	}
-	pr := g + pn + ps
-	q9 := m.updateUH1(m.qsplt * pr)
-	q1 := m.updateUH2((1. - m.qsplt) * pr)
 
-	// x3 := m.gw.cap                                       // x3: reference capacity of GW store
-	fe := m.x2 * math.Pow(m.gw.storageFraction(), 7./2.) // catchment GW exchange; x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
-	m.gw.update(q9 + fe)
-	qr := m.gw.sto * (1. - math.Pow(1.+math.Pow(m.gw.storageFraction(), 4.), -0.25))
-	if m.gw.update(-qr) < 0. { // this line must be left here such that gw is updated
+	g := m.prd.sto * (1. - math.Pow(1.+math.Pow(4.*m.prd.storageFraction()/9., 4.), -0.25)) // eq.6 "Perc": percolation from production zone
+	if m.prd.update(-g) < 0. {                                                              // eq.7 this line must be left here such that prd is updated
 		panic("GR4J error: percolation")
 	}
 
-	qd := math.Max(0., q1+fe)
-	return en - es, qd + qr, q9
+	pr := g + pn - ps          // eq.8
+	q9 := m.updateUH1(.9 * pr) // eq.9-11
+	q1 := m.updateUH2(.1 * pr) // eq.12-17
+	// q9 := m.updateUH1(m.qsplt * pr)        // eq.9-11
+	// q1 := m.updateUH2((1. - m.qsplt) * pr) // eq.12-17
+
+	fe := m.x2 * math.Pow(m.rte.storageFraction(), 7./2.)                              // eq.18 catchment GW exchange; x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	m.rte.update(q9 + fe)                                                              // eq.19
+	qr := m.rte.sto * (1. - math.Pow(1.+math.Pow(m.rte.storageFraction(), 4.), -0.25)) // eq.20
+	if m.rte.update(-qr) < 0. {                                                        // eq.21 this line must be left here such that rte is updated
+		panic("GR4J error: routing")
+	}
+
+	qd := math.Max(0., q1+fe) // eq.22
+	return es, qd + qr, g     // eq.23
 }
 
 func (m *GR4J) updateUH1(pr float64) float64 {
-	// unit hydrograph 1 for the GR4J model
-	var sh, shsv float64
-	n := len(m.uh1)
-	for t := 0; t < n; t++ {
-		tf := float64(t)
-		if tf < m.x4 {
-			sh = math.Pow(tf/m.x4, 5./2.)
-		} else {
-			sh = 1.
-		}
-		if t == n-1 {
-			m.uh1[t] = pr * (sh - shsv)
-		} else {
-			m.uh1[t] += pr * (sh - shsv)
-		}
-		shsv = sh
+	n := len(m.cv1) - 1
+	if n == -1 {
+		return pr
 	}
-	return m.uh1[0]
+	q := m.uh1[0]*pr + m.cv1[0]
+	for i := 0; i < n; i++ {
+		m.cv1[i] = m.uh1[i+1]*pr + m.cv1[i+1]
+	}
+	m.cv1[n] = m.uh1[n+1] * pr
+	return q
 }
 func (m *GR4J) updateUH2(pr float64) float64 {
-	// unit hydrograph 2 for the GR4J model
-	var sh, shsv float64
-	n := len(m.uh2)
-	for t := 0; t <= n; t++ {
-		tf := float64(t)
-		if tf < m.x4 {
-			sh = 0.5 * math.Pow(tf/m.x4, 5./2.)
-		} else if tf < 2.*m.x4 {
-			sh = 1. - 0.5*math.Pow(2.-tf/m.x4, 5./2.)
-		} else {
-			sh = 1.
-		}
-		if t == n-1 {
-			m.uh2[t] = pr * (sh - shsv)
-		} else {
-			m.uh2[t] += pr * (sh - shsv)
-		}
-		shsv = sh
+	q := m.uh2[0]*pr + m.cv2[0]
+	n := len(m.cv2) - 1
+	for i := 0; i < n; i++ {
+		m.cv2[i] = m.uh2[i+1]*pr + m.cv2[i+1]
 	}
-	return m.uh2[0]
+	m.cv2[n] = m.uh2[n+1] * pr
+	return q
 }
 
 // Storage returns total storage
 func (m *GR4J) Storage() float64 {
-	return m.sto.sto + m.gw.sto
+	return m.prd.sto + m.rte.sto
 }
-
-// // SampleSpace returns a hypercube from which the optimum resides
-// func (m *GR4J) SampleSpace(u []float64) []float64 {
-// 	sto := mm.LinearTransform(0., 10., u[0])  // storage capacity
-// 	gw := mm.LinearTransform(0., 100., u[1])  // groundwater storage capacity
-// 	x2 := mm.LinearTransform(-10., 10., u[2]) // water exchange coefficient
-// 	x4 := mm.LinearTransform(0., 1., u[3])    // water exchange coefficient
-// 	return []float64{sto, gw, x2, x4}
-// }
-
-// // Ndim returns the number of dimensions
-// func (m *GR4J) Ndim() int { return 4 }

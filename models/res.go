@@ -30,9 +30,9 @@ func (r *res) Storage() float64 {
 // same as Overflow, but does not return Excess
 func (r *res) update(p float64) float64 {
 	r.sto += p // allows _sto>_cap
-	if r.sto < 0.0 {
+	if r.sto < 0. {
 		sv := r.sto
-		r.sto = 0.0
+		r.sto = 0.
 		return sv
 	}
 	return 0.

@@ -1,22 +1,10 @@
 package rainrun
 
 import (
-	"math"
-
 	"github.com/maseology/goHydro/pet"
 	"github.com/maseology/goHydro/snowpack"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/goHydro/transfunc"
-)
-
-const (
-	// Bristow-Campbell-Makkink
-	a     = 1.
-	b     = 0.060639679562861176
-	t     = 0.
-	g     = .8972864886528819
-	alpha = 1.3265625764694242
-	beta  = -.0003664953523919842
 )
 
 // CCFHBV model
@@ -46,7 +34,7 @@ func (m *CCFHBV) New(p ...float64) {
 
 	// Cold-content snow melt funciton
 	tindex, ddfc, baseT, tsf := p[9], p[10], p[11], p[12]
-	m.SP = snowpack.NewCCF(tindex, 0.0045, ddfc, baseT, tsf)
+	m.SP = snowpack.NewCCF(tindex, ddf, ddfc, baseT, tsf)
 }
 
 // Update state
@@ -68,10 +56,4 @@ func (m *CCFHBV) Update(v []float64, doy int) (y, a, r, g float64) {
 	// a = ep
 	// r = y
 	return
-}
-
-func etRadToGlobal(Ke, tx, tn float64) float64 {
-	// see pg 151 in DeWalle & Rango; attributed to Bristow and Campbell (1984)
-	// ref: Bristow, K.L. and G.S. Campbell, 1984. On the relationship between incoming solar radiation and daily maximum and minimum temperature. Agricultural and Forest Meteorology 31(2):159--166.
-	return Ke * a * (1. - math.Exp(-b*math.Pow(tx-tn, g)))
 }
