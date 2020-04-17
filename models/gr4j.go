@@ -21,7 +21,7 @@ func (m *GR4J) New(p ...float64) {
 	// x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
 	// x4: unit hydrograph time parameter
 	// qsplt: unitHydrographPartition, fixed in paper to = 0.9
-	if p[2] < 0.5 { //|| p[4] <= 0. || p[4] >= 1.0 {
+	if p[3] < 0.5 { //|| p[4] <= 0. || p[4] >= 1.0 {
 		panic("GR4J input error")
 	}
 	m.prd.new(p[0], 0.)
