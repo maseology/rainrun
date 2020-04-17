@@ -50,24 +50,18 @@ func CCFGR4J(fp, logfp string) {
 		return f
 	}
 
-	uFinal, _ := glbopt.SCE(ncmplx, 9, rng, genCCFGR4J, true)
-	// uFinal, _ := glbopt.SurrogateRBF(nrbf, 9, rng, genCCFGR4J)
+	uFinal, _ := glbopt.SCE(ncmplx, 8, rng, genCCFGR4J, true)
+	// uFinal, _ := glbopt.SurrogateRBF(nrbf, 8, rng, genCCFGR4J)
 
 	func() {
-
-		// uFinal := []float64{0.36, 0.86, 0.20, 0.99, 0.74, 0.71, 0.28, 0.78, 0.37, 0.63, 0.3, 0.92, 0.52}
-		par := []string{"fc", "lp", "beta", "uzl", "k0", "k1", "k2", "perc", "maxbas", "tindex", "ddfc", "baseT", "tsf"}
-		pFinal := sampleCCFHBV(uFinal, io.TS)
+		par := []string{"x1", "x2", "x3", "x4", "tindex", "ddfc", "baseT", "tsf"}
+		pFinal := sampleCCFGR4J(uFinal)
 		fmt.Println("Optimum:")
 		for i, v := range par {
 			fmt.Printf(" %s:\t\t%.4f\t[%.4e]\n", v, pFinal[i], uFinal[i])
 		}
 
-		// fmt.Println("\nparameter names:\t[fc lp beta uzl k0 k1 k2 perc maxbas tindex ddfc baseT tsf]")
-		// fmt.Printf("final parameters:\t%.3e\n", pFinal)
-		// fmt.Printf("sample space:\t\t%f\n", uFinal)
-
-		var m rr.CCFHBV
+		var m rr.CCFGR4J
 		m.SI = &si
 		m.New(pFinal...)
 		sim, aet, bf := make([]float64, io.Nfrc), make([]float64, io.Nfrc), make([]float64, io.Nfrc)

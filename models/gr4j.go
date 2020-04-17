@@ -25,12 +25,12 @@ func (m *GR4J) New(p ...float64) {
 		panic("GR4J input error")
 	}
 	m.prd.new(p[0], 0.)
-	m.rte.new(p[1], 0.)
-	m.x2 = p[3]
+	m.rte.new(p[2], 0.)
+	m.x2 = p[1]
 	// m.qsplt = p[4] // I interpret this as a runoff coefficient
 
 	// unit hydrographs parameterization
-	x4 := p[2]
+	x4 := p[3]
 	func() { // build UH1
 		n := int(math.Ceil(x4))
 		m.uh1 = make([]float64, n)
