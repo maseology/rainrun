@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/im7mortal/UTM"
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/mmio"
@@ -21,7 +22,11 @@ func CCFHBV(fp, logfp string) {
 	logger := mmio.GetInstance(logfp)
 	io.LoadMET(fp, true)
 
-	si := solirrad.New(43.6, 0., 0.)
+	lat, _, err := UTM.ToLatLon(io.Loc[1], io.Loc[2], 17, "", true)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	si := solirrad.New(lat, math.Tan(io.Loc[4]), io.Loc[5])
 
 	obs := make([]float64, io.Nfrc)
 	for i, v := range io.FRC {

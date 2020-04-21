@@ -26,12 +26,18 @@ var DOY []int
 // TS timestep in seconds
 var TS float64
 
+// Loc contains location info (coordinates, catchment properties, etc.)
+var Loc []float64
+
 // LoadMET collect the climate data, set to a global variable
 func LoadMET(fp string, print bool) {
 	Nfrc, FRC, HDR = func() (int, [][]float64, *met.Header) {
 		h, c, err := met.ReadMET(fp, print)
 		if err != nil {
 			log.Fatalln(err)
+		}
+		if h.Nloc() != 1 {
+			log.Fatalln("error: currently on simgle-location .met files supported")
 		}
 
 		TS = h.IntervalSec()
@@ -73,7 +79,22 @@ func LoadMET(fp string, print bool) {
 			// 	afrc = append(afrc, v)
 			// }
 		default:
-			log.Fatalf("met.go LoadMET() error: WBCD code not supported: %d\n", h.WBCD)
+			log.Fatalf("rainrun/inout/met.go LoadMET() error: WBCD code not supported: %d\n", h.WBCD)
+		}
+
+		switch h.LocationCode() {
+		case 1:
+			Loc = []float64{h.Locations[0][0].(float64)}
+		case 16:
+			for k, v := range h.Locations {
+				Loc = make([]float64, 7)
+				Loc[0] = float64(k) // cell id
+				for i := 1; i < 7; i++ {
+					Loc[i] = v[i-1].(float64) // x,y,z,gradient,aspect,area
+				}
+			}
+		default:
+			log.Fatalf("rainrun/inout/met.go LoadMET() error: location code not supported: %d\n", h.LocationCode())
 		}
 
 		return len(afrc), afrc, h
