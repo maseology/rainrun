@@ -6,18 +6,20 @@ import (
 	"github.com/maseology/goHydro/solirrad"
 )
 
-// CCFGR4J model
+// MakkinkCCFGR4J model
 // Perrin C., C. Michel, V. Andreassian, 2003. Improvement of a parsimonious model for streamflow simulation. Journal of Hydrology 279. pp. 275-289.
-type CCFGR4J struct {
+// with CCF snowmelt model and Makkink PET
+type MakkinkCCFGR4J struct {
 	GR4J
-	SP snowpack.CCF
-	SI *solirrad.SolIrad
+	SP                    snowpack.CCF
+	SI                    *solirrad.SolIrad
+	Pb, Pc, Palpha, Pbeta float64
 }
 
 // New CCFGR4J contructor
 // [stocap, gwstocap, x4, unitHydrographPartition, x2]
 // [tindex, ddfc, baseT, tsf]
-func (m *CCFGR4J) New(p ...float64) {
+func (m *MakkinkCCFGR4J) New(p ...float64) {
 	const ddf = 0.0045
 	// GR4J
 	m.GR4J.New(p...)
@@ -28,13 +30,8 @@ func (m *CCFGR4J) New(p ...float64) {
 }
 
 // Update state for daily inputs
-func (m *CCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
-	const (
-		// Makkink
-		alpha = 1.3265625764694242
-		beta  = -.0003664953523919842
-		pres  = 101300.
-	)
+func (m *MakkinkCCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
+	const pres = 101300.
 	tx, tn, r, s := v[0], v[1], v[2], v[3]
 
 	// calculate yield
@@ -44,8 +41,8 @@ func (m *CCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
 	// calculate ep
 	ep := func() float64 {
 		tm := (tx + tn) / 2.
-		Kg := etRadToGlobalConst(m.SI.PSIdaily(doy), tx, tn)
-		return pet.Makkink(Kg, tm, pres, alpha, beta)
+		Kg := etRadToGlobal(m.SI.PSIdaily(doy), tx, tn, 1., m.Pb, m.Pc)
+		return pet.Makkink(Kg, tm, pres, m.Palpha, m.Pbeta)
 	}()
 
 	a, r, g = m.GR4J.Update(y, ep)

@@ -19,6 +19,7 @@ type CCFHBV struct {
 // New CCFHBV constructor
 // [fc, lp, beta, uzl, k0, k1, k2, ksat, maxbas, lakeCoverFrac, tindex, ddfc, baseT, tsf]
 func (m *CCFHBV) New(p ...float64) {
+	const ddf = 0.0045
 	if fracCheck(p[1]) || fracCheck(p[4]) || fracCheck(p[5]) || fracCheck(p[6]) { // || fracCheck(p[9]) {
 		panic("HBV input eror")
 	}
@@ -39,6 +40,12 @@ func (m *CCFHBV) New(p ...float64) {
 
 // Update state
 func (m *CCFHBV) Update(v []float64, doy int) (y, a, r, g float64) {
+	const (
+		// Makkink
+		alpha = 1.3265625764694242
+		beta  = -.0003664953523919842
+		pres  = 101300.
+	)
 	tx, tn, r, s := v[0], v[1], v[2], v[3]
 
 	// calculate yield
@@ -48,8 +55,8 @@ func (m *CCFHBV) Update(v []float64, doy int) (y, a, r, g float64) {
 	// calculate ep
 	ep := func() float64 {
 		tm := (tx + tn) / 2.
-		Kg := etRadToGlobal(m.SI.PSIdaily(doy), tx, tn)
-		return pet.Makkink(Kg, tm, 101300., alpha, beta)
+		Kg := etRadToGlobalConst(m.SI.PSIdaily(doy), tx, tn)
+		return pet.Makkink(Kg, tm, pres, alpha, beta)
 	}()
 
 	a, r, g = m.HBV.Update(y, ep)
