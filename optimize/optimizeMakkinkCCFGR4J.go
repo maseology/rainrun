@@ -59,14 +59,14 @@ func MakkinkCCFGR4J(fp, logfp string) {
 	// uFinal, _ := glbopt.SurrogateRBF(nrbf, 12, rng, genMakkinkCCFGR4J)
 
 	func() {
-		par := []string{"x1", "x2", "x3", "x4", "tindex", "ddfc", "baseT", "tsf"}
-		pFinal := sampleCCFGR4J(uFinal)
+		par := []string{"x1", "x2", "x3", "x4", "tindex", "ddfc", "baseT", "tsf", "b", "c", "alpha", "beta"}
+		pFinal := sampleMakkinkCCFGR4J(uFinal)
 		fmt.Println("Optimum:")
 		for i, v := range par {
 			fmt.Printf(" %s:\t\t%.4f\t[%.4e]\n", v, pFinal[i], uFinal[i])
 		}
 
-		var m rr.CCFGR4J
+		var m rr.MakkinkCCFGR4J
 		m.SI = &si
 		m.New(pFinal...)
 		sim, aet, bf := make([]float64, io.Nfrc), make([]float64, io.Nfrc), make([]float64, io.Nfrc)

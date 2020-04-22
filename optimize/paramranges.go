@@ -23,10 +23,10 @@ func sampleMakkink(u []float64) []float64 {
 
 //////////////// CCF (4)
 func sampleCCF(u []float64) []float64 {
-	tindex := mm.LogLinearTransform(0.0002, 0.05, u[4]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
-	ddfc := mm.LinearTransform(0., 10., u[5])           // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
-	baseT := mm.LinearTransform(-5., 5., u[6])          // base/critical temperature (°C)
-	tsf := mm.LinearTransform(0.1, 0.7, u[7])           // TSF (surface temperature factor), 0.1-0.5 have been used
+	tindex := mm.LogLinearTransform(0.0002, 0.05, u[0]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
+	ddfc := mm.LinearTransform(0., 10., u[1])           // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
+	baseT := mm.LinearTransform(-5., 5., u[2])          // base/critical temperature (°C)
+	tsf := mm.LinearTransform(0.1, 0.7, u[3])           // TSF (surface temperature factor), 0.1-0.5 have been used
 	// ddf := mm.LinearTransform(0.001, 0.008, u[1])    // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
 	return []float64{tindex, ddfc, baseT, tsf}
 }
