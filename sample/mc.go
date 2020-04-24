@@ -32,10 +32,10 @@ func Sample(metfp string, nsmpl int, fitness func(o, s []float64) float64) ([][]
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
 
-	ndim := 8
+	ndim := 12
 	gen := func(u []float64) float64 {
-		var m rr.CCFGR4J
-		m.New(sampleCCFGR4J(u)...)
+		var m rr.MakkinkCCFGR4J
+		m.New(MakkinkCCFGR4J(u)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
