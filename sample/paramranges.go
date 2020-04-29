@@ -16,7 +16,7 @@ const (
 func Makkink() []*sampler.Sampler {
 	smps := make([]*sampler.Sampler, 2)
 	smps[0] = sampler.New("alpha", sampler.Linear, 0., 2.5)
-	smps[1] = sampler.New("beta", sampler.Linear, -.003, .003)
+	smps[1] = sampler.New("beta", sampler.Linear, -.01, .003)
 	return smps
 }
 
