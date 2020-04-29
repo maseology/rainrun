@@ -9,6 +9,7 @@ import (
 	"github.com/im7mortal/UTM"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/montecarlo"
+	"github.com/maseology/montecarlo/sampler"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
 	io "github.com/maseology/rainrun/inout"
 	rr "github.com/maseology/rainrun/models"
@@ -32,10 +33,11 @@ func Sample(metfp string, nsmpl int, fitness func(o, s []float64) float64) ([][]
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
 
-	ndim := 12
+	ndim := 10
+	ss := sampler.NewSet(MakkinkCCFGR4J())
 	gen := func(u []float64) float64 {
 		var m rr.MakkinkCCFGR4J
-		m.New(MakkinkCCFGR4J(u)...)
+		m.New(ss.Sample(u)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {

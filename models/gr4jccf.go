@@ -29,12 +29,6 @@ func (m *CCFGR4J) New(p ...float64) {
 
 // Update state for daily inputs
 func (m *CCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
-	const (
-		// Makkink
-		alpha = 1.3265625764694242
-		beta  = -.0003664953523919842
-		pres  = 101300.
-	)
 	tx, tn, r, s := v[0], v[1], v[2], v[3]
 
 	// calculate yield
@@ -43,8 +37,16 @@ func (m *CCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
 
 	// calculate ep
 	ep := func() float64 {
+		const (
+			alpha = 1.13
+			beta  = -.00027
+			pres  = 101300.
+			a     = 0.75
+			b     = 0.0025
+			c     = 2.5
+		)
 		tm := (tx + tn) / 2.
-		Kg := etRadToGlobalConst(m.SI.PSIdaily(doy), tx, tn)
+		Kg := m.SI.GlobalFromPotential(tx, tn, a, b, c, doy)
 		return pet.Makkink(Kg, tm, pres, alpha, beta)
 	}()
 

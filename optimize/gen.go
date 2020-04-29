@@ -4,6 +4,8 @@ import (
 	"log"
 	"math"
 
+	"github.com/maseology/montecarlo/sampler"
+
 	"github.com/maseology/rainrun/inout"
 	rr "github.com/maseology/rainrun/models"
 	"github.com/maseology/rainrun/sample"
@@ -42,7 +44,8 @@ func genDawdyODonnell(u []float64) float64 {
 
 func genGR4J(u []float64) float64 {
 	var m rr.Lumper = &rr.GR4J{}
-	m.New(sample.GR4J(u)...)
+	ss := sampler.NewSet(sample.GR4J()) //////////////////////////////////  TO FIX
+	m.New(ss.Sample(u)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)

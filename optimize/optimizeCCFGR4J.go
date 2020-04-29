@@ -11,6 +11,7 @@ import (
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/mmio"
+	"github.com/maseology/montecarlo/sampler"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
 	io "github.com/maseology/rainrun/inout"
@@ -37,9 +38,10 @@ func CCFGR4J(fp, logfp string) {
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
 
+	ss := sampler.NewSet(sample.GR4J())
 	genCCFGR4J := func(u []float64) float64 {
 		var m rr.CCFGR4J
-		m.New(sample.CCFGR4J(u)...)
+		m.New(ss.Sample(u)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
@@ -61,7 +63,7 @@ func CCFGR4J(fp, logfp string) {
 
 	func() {
 		par := []string{"x1", "x2", "x3", "x4", "tindex", "ddfc", "baseT", "tsf"}
-		pFinal := sample.CCFGR4J(uFinal)
+		pFinal := ss.Sample(uFinal)
 		fmt.Println("Optimum:")
 		for i, v := range par {
 			fmt.Printf(" %s:\t\t%.4f\t[%.4e]\n", v, pFinal[i], uFinal[i])

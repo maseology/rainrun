@@ -11,14 +11,15 @@ import (
 // with CCF snowmelt model and Makkink PET
 type MakkinkCCFGR4J struct {
 	GR4J
-	SP                    snowpack.CCF
-	SI                    *solirrad.SolIrad
-	Pb, Pc, Palpha, Pbeta float64
+	SP            snowpack.CCF
+	SI            *solirrad.SolIrad
+	Palpha, Pbeta float64
 }
 
 // New CCFGR4J contructor
 // [stocap, gwstocap, x4, unitHydrographPartition, x2]
 // [tindex, ddfc, baseT, tsf]
+// [b, c, alpha, beta]
 func (m *MakkinkCCFGR4J) New(p ...float64) {
 	const ddf = 0.0045
 	// GR4J
@@ -27,6 +28,7 @@ func (m *MakkinkCCFGR4J) New(p ...float64) {
 	// Cold-content snow melt funciton
 	tindex, ddfc, baseT, tsf := p[4], p[5], p[6], p[7]
 	m.SP = snowpack.NewCCF(tindex, ddf, ddfc, baseT, tsf)
+	m.Palpha, m.Pbeta = p[8], p[9]
 }
 
 // Update state for daily inputs
@@ -40,8 +42,13 @@ func (m *MakkinkCCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
 
 	// calculate ep
 	ep := func() float64 {
+		const (
+			a = 0.75
+			b = 0.0025
+			c = 2.5
+		)
 		tm := (tx + tn) / 2.
-		Kg := etRadToGlobal(m.SI.PSIdaily(doy), tx, tn, 1., m.Pb, m.Pc)
+		Kg := m.SI.GlobalFromPotential(tx, tn, a, b, c, doy)
 		return pet.Makkink(Kg, tm, pres, m.Palpha, m.Pbeta)
 	}()
 
