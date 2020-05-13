@@ -27,7 +27,7 @@ func CCF() []*sampler.Sampler {
 	smps[1] = sampler.New("ddfc", sampler.Linear, 0., 10.)         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
 	smps[2] = sampler.New("baseT", sampler.Linear, -5., 5.)        // base/critical temperature (°C)
 	smps[3] = sampler.New("tsf", sampler.Linear, .1, .7)           // TSF (surface temperature factor), 0.1-0.5 have been used
-	// ddf := mm.LinearTransform(0.001, 0.008, u[1])    // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
+	// ddf := mm.LinearTransform(0.001, 0.008, u[1])               // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
 	return smps
 }
 
