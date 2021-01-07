@@ -9,7 +9,7 @@ import (
 
 func SumHydrograph(dt []time.Time, o, s, g []float64) {
 	// C:/Users/mason/OneDrive/R/dygraph/obssim_csv_viewer.R
-	idt, io, is, ig := make([]interface{}, Nfrc), make([]interface{}, Nfrc), make([]interface{}, Nfrc), make([]interface{}, Nfrc)
+	idt, io, is, ig := make([]interface{}, Ndt), make([]interface{}, Ndt), make([]interface{}, Ndt), make([]interface{}, Ndt)
 	for i := range o {
 		idt[i] = dt[i]
 		io[i] = o[i]

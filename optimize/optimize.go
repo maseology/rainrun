@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/maseology/glbopt"
-	"github.com/maseology/montecarlo/sampler"
 	"github.com/maseology/montecarlo/smpln"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
@@ -59,16 +58,21 @@ func Optimize(fp, mdl string) {
 			inout.EvalPNG(m)
 		}()
 	case "GR4J":
-		func() { // check
-			uFinal, _ := glbopt.SCE(ncmplx, 5, rng, genGR4J, true)
-			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 5, rng, genGR4J)
+		func() {
+			uFinal, _ := glbopt.SCE(ncmplx, 4, rng, genGR4J, true)
+			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 4, rng, genGR4J)
 
 			var m rr.Lumper = &rr.GR4J{}
-			ss := sampler.NewSet(sample.GR4J()) //////////////////////////////////  TO FIX
-			pFinal := ss.Sample(uFinal)
+			pFinal := sample.GR4J(uFinal)
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			m.New(pFinal...)
 			inout.EvalPNG(m)
+			// var m rr.Lumper = &rr.GR4J{}
+			// ss := sampler.NewSet(sample.GR4J()) //////////////////////////////////  TO FIX
+			// pFinal := ss.Sample(uFinal)
+			// fmt.Printf("\nfinal parameters: %v\n", pFinal)
+			// m.New(pFinal...)
+			// inout.EvalPNG(m)
 		}()
 	case "HBV":
 		func() {

@@ -1,6 +1,7 @@
 package rainrun
 
 import (
+	"log"
 	"math"
 )
 
@@ -16,21 +17,16 @@ type GR4J struct {
 // New GR4J contructor
 // [prdcap, rtecap, x4, unitHydrographPartition, x2]
 func (m *GR4J) New(p ...float64) {
-	// prd: x1: maximum capacity of the "production (SMA) store"
-	// rte: x3: reference capacity of "routing store"
-	// x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
-	// x4: unit hydrograph time parameter
-	// qsplt: unitHydrographPartition, fixed in paper to = 0.9
+	m.prd.new(p[0], 0.) // prd: x1: maximum capacity of the "production (SMA) store"
+	m.x2 = p[1]         // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	m.rte.new(p[2], 0.) // rte: x3: reference capacity of "routing store"
+	x4 := p[3]          // x4: unit hydrograph time parameter
+	// m.qsplt = p[4]   // qsplt: unitHydrographPartition, fixed in paper to = 0.9
 	if p[3] < 0.5 { //|| p[4] <= 0. || p[4] >= 1.0 {
-		panic("GR4J input error")
+		log.Fatalln("GR4J input error")
 	}
-	m.prd.new(p[0], 0.)
-	m.rte.new(p[2], 0.)
-	m.x2 = p[1]
-	// m.qsplt = p[4] // I interpret this as a runoff coefficient
 
-	// unit hydrographs parameterization
-	x4 := p[3]
+	// unit hydrographs build
 	func() { // build UH1
 		n := int(math.Ceil(x4))
 		m.uh1 = make([]float64, n)

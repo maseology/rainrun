@@ -1,11 +1,14 @@
 package inout
 
 import (
+	"encoding/gob"
 	"log"
+	"os"
 	"sort"
 	"time"
 
 	"github.com/maseology/goHydro/met"
+	"github.com/maseology/mmio"
 )
 
 // HDR holds header info
@@ -14,8 +17,8 @@ var HDR *met.Header
 // FRC holds forcing data
 var FRC [][]float64
 
-// Nfrc number of timesteps
-var Nfrc int
+// Ndt number of timesteps
+var Ndt int
 
 // DT holds dates
 var DT []time.Time
@@ -31,7 +34,36 @@ var Loc []float64
 
 // LoadMET collect the climate data, set to a global variable
 func LoadMET(fp string, print bool) {
-	Nfrc, FRC, HDR = func() (int, [][]float64, *met.Header) {
+	switch mmio.GetExtension(fp) {
+	case ".met":
+		loadMet(fp, print)
+	case ".gob":
+		loadGob(fp)
+	default:
+		log.Fatalf("unknown input data file %s", fp)
+	}
+}
+
+func loadGob(fp string) {
+	f, err := os.Open(fp)
+	defer f.Close()
+	if err != nil {
+		log.Fatalf("met.go loadGob error: %v", err)
+	}
+	enc := gob.NewDecoder(f)
+	err = enc.Decode(&FRC)
+	if err != nil {
+		log.Fatalf("met.go loadGob error: %v", err)
+	}
+	err = enc.Decode(&DT)
+	if err != nil {
+		log.Fatalf("met.go loadGob error: %v", err)
+	}
+	Ndt = len(DT)
+}
+
+func loadMet(fp string, print bool) {
+	Ndt, FRC, HDR = func() (int, [][]float64, *met.Header) {
 		h, c, err := met.ReadMET(fp, print)
 		if err != nil {
 			log.Fatalln(err)

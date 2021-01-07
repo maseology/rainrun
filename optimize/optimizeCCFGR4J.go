@@ -11,7 +11,6 @@ import (
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/mmio"
-	"github.com/maseology/montecarlo/sampler"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
 	io "github.com/maseology/rainrun/inout"
@@ -30,7 +29,7 @@ func CCFGR4J(fp, logfp string) {
 	}
 	si := solirrad.New(lat, math.Tan(io.Loc[4]), io.Loc[5])
 
-	obs := make([]float64, io.Nfrc)
+	obs := make([]float64, io.Ndt)
 	for i, v := range io.FRC {
 		obs[i] = v[4] // [m/d]
 	}
@@ -38,14 +37,13 @@ func CCFGR4J(fp, logfp string) {
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
 
-	ss := sampler.NewSet(sample.GR4J())
 	genCCFGR4J := func(u []float64) float64 {
 		var m rr.CCFGR4J
-		m.New(ss.Sample(u)...)
+		m.New(sample.CCFGR4J(u)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
-			sim := make([]float64, io.Nfrc)
+			sim := make([]float64, io.Ndt)
 			for i, v := range io.FRC {
 				_, _, r, _ := m.Update(v, io.DOY[i])
 				sim[i] = r
@@ -63,7 +61,7 @@ func CCFGR4J(fp, logfp string) {
 
 	func() {
 		par := []string{"x1", "x2", "x3", "x4", "tindex", "ddfc", "baseT", "tsf"}
-		pFinal := ss.Sample(uFinal)
+		pFinal := sample.CCFGR4J(uFinal)
 		fmt.Println("Optimum:")
 		for i, v := range par {
 			fmt.Printf(" %s:\t\t%.4f\t[%.4e]\n", v, pFinal[i], uFinal[i])
@@ -72,8 +70,8 @@ func CCFGR4J(fp, logfp string) {
 		var m rr.CCFGR4J
 		m.SI = &si
 		m.New(pFinal...)
-		sim, aet, bf := make([]float64, io.Nfrc), make([]float64, io.Nfrc), make([]float64, io.Nfrc)
-		y := make([]float64, io.Nfrc)
+		sim, aet, bf := make([]float64, io.Ndt), make([]float64, io.Ndt), make([]float64, io.Ndt)
+		y := make([]float64, io.Ndt)
 		for i, v := range io.FRC {
 			yy, a, r, g := m.Update(v, io.DOY[i])
 			y[i] = yy
@@ -84,7 +82,7 @@ func CCFGR4J(fp, logfp string) {
 		kge, nse, mwr2, bias := objfunc.KGE(obs[365:], sim[365:]), objfunc.NSE(obs[365:], sim[365:]), objfunc.Krause(obs[365:], sim[365:]), objfunc.Bias(obs[365:], sim[365:])
 		fmt.Printf(" KGE: %.3f\tNSE: %.3f\tmon-wr2: %.3f\tBias: %.3f\n", kge, nse, mwr2, bias)
 		func() {
-			idt, iy, ia, iob, is, ig := make([]interface{}, io.Nfrc), make([]interface{}, io.Nfrc), make([]interface{}, io.Nfrc), make([]interface{}, io.Nfrc), make([]interface{}, io.Nfrc), make([]interface{}, io.Nfrc)
+			idt, iy, ia, iob, is, ig := make([]interface{}, io.Ndt), make([]interface{}, io.Ndt), make([]interface{}, io.Ndt), make([]interface{}, io.Ndt), make([]interface{}, io.Ndt), make([]interface{}, io.Ndt)
 			for i := range obs {
 				idt[i] = io.DT[i]
 				iy[i] = y[i]

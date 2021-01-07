@@ -3,7 +3,6 @@ package sample
 import (
 	mm "github.com/maseology/mmaths"
 	"github.com/maseology/montecarlo/jointdist"
-	"github.com/maseology/montecarlo/sampler"
 )
 
 const (
@@ -13,22 +12,30 @@ const (
 )
 
 // Makkink (2)
-func Makkink() []*sampler.Sampler {
-	smps := make([]*sampler.Sampler, 2)
-	smps[0] = sampler.New("alpha", sampler.Linear, 0., 2.5)
-	smps[1] = sampler.New("beta", sampler.Linear, -.01, .003)
-	return smps
+func Makkink(u []float64) []float64 {
+	alpha := mm.LinearTransform(0., 2.5, u[0])
+	beta := mm.LinearTransform(-.01, .003, u[1])
+	return []float64{alpha, beta}
+	// smps := make([]*sampler.Sampler, 2)
+	// smps[0] = sampler.New("alpha", sampler.Linear, 0., 2.5)
+	// smps[1] = sampler.New("beta", sampler.Linear, -.01, .003)
+	// return smps
 }
 
 // CCF (4)
-func CCF() []*sampler.Sampler {
-	smps := make([]*sampler.Sampler, 4)
-	smps[0] = sampler.New("tindex", sampler.LogLinear, .0002, .05) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
-	smps[1] = sampler.New("ddfc", sampler.Linear, 0., 10.)         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
-	smps[2] = sampler.New("baseT", sampler.Linear, -5., 5.)        // base/critical temperature (°C)
-	smps[3] = sampler.New("tsf", sampler.Linear, .1, .7)           // TSF (surface temperature factor), 0.1-0.5 have been used
-	// ddf := mm.LinearTransform(0.001, 0.008, u[1])               // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
-	return smps
+func CCF(u []float64) []float64 {
+	tindex := mm.LogLinearTransform(.0002, .05, u[0])
+	ddfc := mm.LinearTransform(0., 10., u[1])
+	baseT := mm.LinearTransform(-5., 5., u[2])
+	tsf := mm.LinearTransform(.1, .7, u[3])
+	return []float64{tindex, ddfc, baseT, tsf}
+	// smps := make([]*sampler.Sampler, 4)
+	// smps[0] = sampler.New("tindex", sampler.LogLinear, .0002, .05) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
+	// smps[1] = sampler.New("ddfc", sampler.Linear, 0., 10.)         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
+	// smps[2] = sampler.New("baseT", sampler.Linear, -5., 5.)        // base/critical temperature (°C)
+	// smps[3] = sampler.New("tsf", sampler.Linear, .1, .7)           // TSF (surface temperature factor), 0.1-0.5 have been used
+	// // ddf := mm.LinearTransform(0.001, 0.008, u[1])               // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
+	// return smps
 }
 
 ////////////////
@@ -59,28 +66,33 @@ func DawdyODonnell(u []float64, ts float64) []float64 {
 }
 
 // GR4J (4)
-func GR4J() []*sampler.Sampler {
-	smps := make([]*sampler.Sampler, 4)
-	smps[0] = sampler.New("x1", sampler.Linear, 0., 1.)  // x1: "production storage" capacity (mm)
-	smps[1] = sampler.New("x2", sampler.Linear, -.1, .1) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
-	smps[2] = sampler.New("x3", sampler.Linear, 0., 3.)  // x3: "routing storage"/groundwater storage capacity (mm)
-	smps[3] = sampler.New("x4", sampler.Linear, .5, 10.) // x4: unit hydrograph time base (days)
-	// qsplt := mm.LinearTransform(0., 1., u[4]) // fixed in paper as 0.9
-	return smps
+func GR4J(u []float64) []float64 {
+	x1 := mm.LinearTransform(0., 1., u[0])  // x1: "production storage" capacity (mm)
+	x2 := mm.LinearTransform(-.1, .1, u[1]) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	x3 := mm.LinearTransform(0., 3., u[2])  // x3: "routing storage"/groundwater storage capacity (mm)
+	x4 := mm.LinearTransform(.5, 10., u[3]) // x4: unit hydrograph time base (days)
+	return []float64{x1, x2, x3, x4}
+	// smps := make([]*sampler.Sampler, 4)
+	// smps[0] = sampler.New("x1", sampler.Linear, 0., 1.)  // x1: "production storage" capacity (mm)
+	// smps[1] = sampler.New("x2", sampler.Linear, -.1, .1) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	// smps[2] = sampler.New("x3", sampler.Linear, 0., 3.)  // x3: "routing storage"/groundwater storage capacity (mm)
+	// smps[3] = sampler.New("x4", sampler.Linear, .5, 10.) // x4: unit hydrograph time base (days)
+	// // qsplt := mm.LinearTransform(0., 1., u[4]) // fixed in paper as 0.9
+	// return smps
 }
 
 // CCFGR4J (8)
-func CCFGR4J() []*sampler.Sampler {
-	ugr4j := GR4J()
-	uccf := CCF()
+func CCFGR4J(u []float64) []float64 {
+	ugr4j := GR4J(u)
+	uccf := CCF(u[4:])
 	return append(ugr4j, uccf...)
 }
 
 // MakkinkCCFGR4J (10)
-func MakkinkCCFGR4J() []*sampler.Sampler {
-	ugr4j := GR4J()
-	uccf := CCF()
-	mak := Makkink()
+func MakkinkCCFGR4J(u []float64) []float64 {
+	ugr4j := GR4J(u)
+	uccf := CCF(u[4:])
+	mak := Makkink(u[8:])
 	return append(ugr4j, append(uccf, mak...)...)
 }
 
@@ -102,12 +114,13 @@ func HBV(u []float64, ts float64) []float64 {
 // CCFHBV (13)
 func CCFHBV(u []float64, ts float64) []float64 {
 	uhbv := HBV(u, ts)
-	tindex := mm.LogLinearTransform(0.0002, 0.05, u[9]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
-	ddfc := mm.LinearTransform(.01, 2.5, u[10])         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
-	baseT := mm.LinearTransform(-5., 5., u[11])         // base/critical temperature (°C)
-	tsf := mm.LinearTransform(0.1, 0.6, u[12])          // TSF (surface temperature factor), 0.1-0.5 have been used
-	// ddf := mm.LinearTransform(0.001, 0.008, u[1])           // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
-	uccf := []float64{tindex, ddfc, baseT, tsf}
+	uccf := CCF(u[9:])
+	// tindex := mm.LogLinearTransform(0.0002, 0.05, u[9]) // CCF temperature index; range .0002 to 0.0005 m/°C/d -- roughly 1/10 DDF (pg.278)
+	// ddfc := mm.LinearTransform(.01, 2.5, u[10])         // DDF adjustment factor based on pack density, see DeWalle and Rango, pg. 275; Ref: Martinec (1960)=1.1
+	// baseT := mm.LinearTransform(-5., 5., u[11])         // base/critical temperature (°C)
+	// tsf := mm.LinearTransform(0.1, 0.6, u[12])          // TSF (surface temperature factor), 0.1-0.5 have been used
+	// // ddf := mm.LinearTransform(0.001, 0.008, u[1])           // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
+	// uccf := []float64{tindex, ddfc, baseT, tsf}
 	return append(uhbv, uccf...)
 }
 
