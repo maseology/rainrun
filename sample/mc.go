@@ -10,22 +10,21 @@ import (
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/montecarlo"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
-	io "github.com/maseology/rainrun/inout"
 	rr "github.com/maseology/rainrun/models"
 )
 
 // Sample samples a rainrun model
 func Sample(metfp string, nsmpl int, fitness func(o, s []float64) float64) ([][]float64, []float64) {
-	io.LoadMET(metfp, false)
+	rr.LoadMET(metfp, false)
 
-	lat, _, err := UTM.ToLatLon(io.Loc[1], io.Loc[2], 17, "", true)
+	lat, _, err := UTM.ToLatLon(rr.Loc[1], rr.Loc[2], 17, "", true)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	si := solirrad.New(lat, math.Tan(io.Loc[4]), io.Loc[5])
+	si := solirrad.New(lat, math.Tan(rr.Loc[4]), rr.Loc[5])
 
-	obs := make([]float64, io.Ndt)
-	for i, v := range io.FRC {
+	obs := make([]float64, rr.Ndt)
+	for i, v := range rr.FRC {
 		obs[i] = v[4] // [m/d]
 	}
 
@@ -39,9 +38,9 @@ func Sample(metfp string, nsmpl int, fitness func(o, s []float64) float64) ([][]
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
-			sim := make([]float64, io.Ndt)
-			for i, v := range io.FRC {
-				_, _, r, _ := m.Update(v, io.DOY[i])
+			sim := make([]float64, rr.Ndt)
+			for i, v := range rr.FRC {
+				_, _, r, _ := m.Update(v, rr.DOY[i])
 				sim[i] = r
 			}
 			return fitness(obs[365:], sim[365:])

@@ -1,4 +1,4 @@
-package inout
+package rainrun
 
 import (
 	"encoding/gob"
@@ -42,6 +42,12 @@ func LoadMET(fp string, print bool) {
 	default:
 		log.Fatalf("unknown input data file %s", fp)
 	}
+
+	Ndt = len(DT)
+	DOY = make([]int, Ndt)
+	for i, t := range DT {
+		DOY[i] = t.YearDay()
+	}
 }
 
 func loadGob(fp string) {
@@ -59,7 +65,6 @@ func loadGob(fp string) {
 	if err != nil {
 		log.Fatalf("met.go loadGob error: %v", err)
 	}
-	Ndt = len(DT)
 }
 
 func loadMet(fp string, print bool) {
@@ -78,11 +83,6 @@ func loadMet(fp string, print bool) {
 			DT = append(DT, t)
 		}
 		sort.Slice(DT, func(i, j int) bool { return DT[i].Before(DT[j]) })
-
-		DOY = make([]int, len(DT))
-		for i, t := range DT {
-			DOY[i] = t.YearDay()
-		}
 
 		afrc := make([][]float64, 0, len(DT))
 		switch h.WBCD {

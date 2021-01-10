@@ -4,20 +4,20 @@ import (
 	"log"
 	"math"
 
-	"github.com/maseology/rainrun/inout"
+	rainrun "github.com/maseology/rainrun/models"
 	rr "github.com/maseology/rainrun/models"
 	"github.com/maseology/rainrun/sample"
 )
 
 func eval(m rr.Lumper) float64 { // evaluate model
-	o := make([]float64, inout.Ndt)
-	s := make([]float64, inout.Ndt)
-	for i, v := range inout.FRC {
+	o := make([]float64, rr.Ndt)
+	s := make([]float64, rr.Ndt)
+	for i, v := range rr.FRC {
 		_, r, _ := m.Update(v[0], v[1])
 		o[i] = v[2]
 		s[i] = r
 	}
-	return fitness(o[365:], s[365:])
+	return minimizer(o[365:], s[365:])
 }
 
 func genAtkinson(u []float64) float64 {
@@ -32,7 +32,7 @@ func genAtkinson(u []float64) float64 {
 
 func genDawdyODonnell(u []float64) float64 {
 	var m rr.Lumper = &rr.DawdyODonnell{}
-	m.New(sample.DawdyODonnell(u, inout.TS)...)
+	m.New(sample.DawdyODonnell(u, rr.TS)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)
@@ -63,7 +63,7 @@ func genGR4J(u []float64) float64 {
 
 func genHBV(u []float64) float64 {
 	var m rr.Lumper = &rr.HBV{}
-	m.New(sample.HBV(u, inout.TS)...)
+	m.New(sample.HBV(u, rainrun.TS)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)

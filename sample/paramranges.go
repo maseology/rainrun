@@ -65,19 +65,19 @@ func DawdyODonnell(u []float64, ts float64) []float64 {
 	return []float64{ksat, rs, ms, gs, s, b}
 }
 
-// GR4J (4)
+// GR4J (4) with iterative warmup to Q0
 func GR4J(u []float64) []float64 {
-	x1 := mm.LinearTransform(0., 1., u[0])  // x1: "production storage" capacity (mm)
-	x2 := mm.LinearTransform(-.1, .1, u[1]) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
-	x3 := mm.LinearTransform(0., 3., u[2])  // x3: "routing storage"/groundwater storage capacity (mm)
+	x1 := mm.LinearTransform(0., 2., u[0])  // x1: "production storage" capacity (m)
+	x2 := mm.LinearTransform(-1., 1., u[1]) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
+	x3 := mm.LinearTransform(0., 25., u[2]) // x3: "routing storage"/groundwater storage capacity (m)
 	x4 := mm.LinearTransform(.5, 10., u[3]) // x4: unit hydrograph time base (days)
+	// qsplt := mm.LinearTransform(.5, 1., u[4]) // fixed in paper as 0.9
 	return []float64{x1, x2, x3, x4}
 	// smps := make([]*sampler.Sampler, 4)
 	// smps[0] = sampler.New("x1", sampler.Linear, 0., 1.)  // x1: "production storage" capacity (mm)
 	// smps[1] = sampler.New("x2", sampler.Linear, -.1, .1) // x2: water exchange coefficient (>0 for water imports, <0 for exports, =0 for no exchange)
 	// smps[2] = sampler.New("x3", sampler.Linear, 0., 3.)  // x3: "routing storage"/groundwater storage capacity (mm)
 	// smps[3] = sampler.New("x4", sampler.Linear, .5, 10.) // x4: unit hydrograph time base (days)
-	// // qsplt := mm.LinearTransform(0., 1., u[4]) // fixed in paper as 0.9
 	// return smps
 }
 
@@ -122,6 +122,14 @@ func CCFHBV(u []float64, ts float64) []float64 {
 	// // ddf := mm.LinearTransform(0.001, 0.008, u[1])           // (initial) degree-day/melt factor; range .001 to .008 m/°C/d  (pg.275)
 	// uccf := []float64{tindex, ddfc, baseT, tsf}
 	return append(uhbv, uccf...)
+}
+
+// MakkinkCCFHBV (15)
+func MakkinkCCFHBV(u []float64, ts float64) []float64 {
+	uhbv := HBV(u, ts)
+	uccf := CCF(u[9:])
+	mak := Makkink(u[13:])
+	return append(uhbv, append(uccf, mak...)...)
 }
 
 // ManabeGW (5)

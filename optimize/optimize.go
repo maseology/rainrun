@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/maseology/glbopt"
+	"github.com/maseology/mmio"
 	"github.com/maseology/montecarlo/smpln"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
-	"github.com/maseology/rainrun/inout"
 	rr "github.com/maseology/rainrun/models"
 	"github.com/maseology/rainrun/sample"
 )
@@ -20,11 +20,12 @@ const (
 	ncmplx = 200
 )
 
-var fitness = objfunc.RMSE
+var minimizer = func(o, s []float64) float64 { return 1. - objfunc.NSE(o, s) }
 
 // Optimize a single or set of rainrun models
-func Optimize(fp, mdl string) {
-	inout.LoadMET(fp, true)
+func Optimize(fp, mdl, logfp string) {
+	logger := mmio.GetInstance(logfp)
+	rr.LoadMET(fp, true)
 
 	rng := rand.New(mrg63k3a.New())
 	rng.Seed(time.Now().UnixNano())
@@ -43,7 +44,7 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "DawdyODonnell":
 		func() {
@@ -51,11 +52,11 @@ func Optimize(fp, mdl string) {
 			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 6, rng, genDawdyODonnell)
 
 			var m rr.Lumper = &rr.DawdyODonnell{}
-			pFinal := sample.DawdyODonnell(uFinal, inout.TS)
+			pFinal := sample.DawdyODonnell(uFinal, rr.TS)
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "GR4J":
 		func() {
@@ -64,15 +65,19 @@ func Optimize(fp, mdl string) {
 
 			var m rr.Lumper = &rr.GR4J{}
 			pFinal := sample.GR4J(uFinal)
-			fmt.Printf("\nfinal parameters: %v\n", pFinal)
+			sp := fmt.Sprintf("\nfinal parameters:\t%.3e\n", pFinal)
+			su := fmt.Sprintf("sample space:\t\t%f\n", uFinal)
+			fmt.Print(sp + su)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			logger.Println(mmio.FileName(fp, false))
+			logger.Print(sp + su)
+			logger.Println("\n" + rr.EvalPNG(m))
 			// var m rr.Lumper = &rr.GR4J{}
 			// ss := sampler.NewSet(sample.GR4J()) //////////////////////////////////  TO FIX
 			// pFinal := ss.Sample(uFinal)
 			// fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			// m.New(pFinal...)
-			// inout.EvalPNG(m)
+			// rr.EvalPNG(m)
 		}()
 	case "HBV":
 		func() {
@@ -80,11 +85,13 @@ func Optimize(fp, mdl string) {
 			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 9, rng, genHBV)
 
 			var m rr.Lumper = &rr.HBV{}
-			pFinal := sample.HBV(uFinal, inout.TS)
-			fmt.Printf("\nfinal parameters:\t%.3e\n", pFinal)
-			fmt.Printf("sample space:\t\t%f\n", uFinal)
+			pFinal := sample.HBV(uFinal, rr.TS)
+			sp := fmt.Sprintf("\nfinal parameters:\t%.3e\n", pFinal)
+			su := fmt.Sprintf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			logger.Println(mmio.FileName(fp, false))
+			logger.Print(sp + su)
+			logger.Println("\n" + rr.EvalPNG(m))
 		}()
 	case "ManabeGW":
 		func() { // check
@@ -96,7 +103,7 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "MultiLayerCapacitance":
 		func() { // check
@@ -108,7 +115,7 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "Quinn":
 		func() { // check
@@ -120,7 +127,7 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "SIXPAR":
 		func() { // check
@@ -132,10 +139,10 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	case "SPLR":
-		func() { //check
+		func() { // check (negative AET)
 			uFinal, _ := glbopt.SCE(ncmplx, 6, rng, genSPLR, true)
 			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 6, rng, genSPLR)
 
@@ -144,10 +151,10 @@ func Optimize(fp, mdl string) {
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
-			inout.EvalPNG(m)
+			rr.EvalPNG(m)
 		}()
 	default:
-		fmt.Println("unregognized model:" + mdl)
+		fmt.Println("unrecognized model:" + mdl)
 	}
 }
 
@@ -155,11 +162,11 @@ func Optimize(fp, mdl string) {
 // every possible permutation of p dimensions and w discrete
 // values.
 func permute(fp string) {
-	inout.LoadMET(fp, true)
+	rr.LoadMET(fp, true)
 	var m rr.Lumper = &rr.DawdyODonnell{}
 	for i, u := range smpln.Permutations(6, 3) {
 		fmt.Println(i, u)
-		m.New(sample.DawdyODonnell(u, inout.TS)...)
+		m.New(sample.DawdyODonnell(u, rr.TS)...)
 		if math.IsNaN(eval(m)) {
 			panic("NaN")
 		}

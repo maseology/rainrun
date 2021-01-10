@@ -1,4 +1,4 @@
-package inout
+package rainrun
 
 import (
 	"math"
@@ -7,11 +7,11 @@ import (
 	"github.com/maseology/mmio"
 )
 
-func SumHydrograph(dt []time.Time, o, s, g []float64) {
+func SumHydrograph(o, s, g []float64) {
 	// C:/Users/mason/OneDrive/R/dygraph/obssim_csv_viewer.R
 	idt, io, is, ig := make([]interface{}, Ndt), make([]interface{}, Ndt), make([]interface{}, Ndt), make([]interface{}, Ndt)
-	for i := range o {
-		idt[i] = dt[i]
+	for i, t := range DT {
+		idt[i] = t
 		io[i] = o[i]
 		is[i] = s[i]
 		ig[i] = g[i]
