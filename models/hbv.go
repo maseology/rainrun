@@ -29,6 +29,7 @@ func (m *HBV) New(p ...float64) {
 	m.lakefrac = 0.                     //p[9]                   // lake fraction
 
 	m.tf = transfunc.NewTF(p[8], 0.5, 0.) // MAXBAS: triangular weighted transfer function
+	_ = m.fc
 }
 
 // Update state for daily inputs
@@ -40,8 +41,8 @@ func (m *HBV) Update(pn, ep float64) (float64, float64, float64) {
 	}
 	m.hBVinfiltration(pn * (1. - m.lakefrac))
 	a += m.hBVet(ep)
-	q, bf := m.hBVrunoff()
-	return a, q, bf
+	q, g := m.hBVrunoff()
+	return a, q, g
 }
 
 func (m *HBV) hBVlake(pn, ep float64) float64 {
@@ -97,7 +98,7 @@ func (m *HBV) hBVrunoff() (float64, float64) {
 	m.suz -= g
 	m.slz += g
 
-	return q, q2
+	return q, g
 }
 
 // Storage returns total storage

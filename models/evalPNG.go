@@ -33,6 +33,6 @@ func EvalPNG(m Lumper) string {
 	mmio.ObsSim("hyd.png", o[365:], s[365:])
 	mmio.ObsSimFDC("fdc.png", o[365:], s[365:])
 	SumHydrograph(o, s, b)
-	SumMonthly(DT, o, s, TS, 1.)
+	SumMonthly(DT, o, s, Timestep, 1.)
 	return stOf + stSum
 }

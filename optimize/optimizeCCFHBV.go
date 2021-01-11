@@ -38,7 +38,7 @@ func CCFHBV(fp, logfp string) {
 
 	genCCFHBV := func(u []float64) float64 {
 		var m rr.CCFHBV
-		m.New(sample.CCFHBV(u, rr.TS)...)
+		m.New(sample.CCFHBV(u, rr.Timestep)...)
 		m.SI = &si
 
 		f := func(obs []float64) float64 {
@@ -62,7 +62,7 @@ func CCFHBV(fp, logfp string) {
 
 		// uFinal := []float64{0.36, 0.86, 0.20, 0.99, 0.74, 0.71, 0.28, 0.78, 0.37, 0.63, 0.3, 0.92, 0.52}
 		par := []string{"fc", "lp", "beta", "uzl", "k0", "k1", "k2", "perc", "maxbas", "tindex", "ddfc", "baseT", "tsf"}
-		pFinal := sample.CCFHBV(uFinal, rr.TS)
+		pFinal := sample.CCFHBV(uFinal, rr.Timestep)
 		fmt.Println("Optimum:")
 		for i, v := range par {
 			fmt.Printf(" %s:\t\t%.4f\t[%.4e]\n", v, pFinal[i], uFinal[i])

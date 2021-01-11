@@ -26,8 +26,8 @@ var DT []time.Time
 // DOY hold day of year
 var DOY []int
 
-// TS timestep in seconds
-var TS float64
+// Timestep timestep in seconds
+var Timestep float64
 
 // Loc contains location info (coordinates, catchment properties, etc.)
 var Loc []float64
@@ -77,7 +77,7 @@ func loadMet(fp string, print bool) {
 			log.Fatalln("error: currently on simgle-location .met files supported")
 		}
 
-		TS = h.IntervalSec()
+		Timestep = h.IntervalSec()
 		DT = make([]time.Time, 0, len(c.T))
 		for _, t := range c.T {
 			DT = append(DT, t)

@@ -98,7 +98,7 @@ func MakkinkCCFGR4J(u []float64) []float64 {
 
 // HBV (9)
 func HBV(u []float64, ts float64) []float64 {
-	fc := mm.LinearTransform(0., 1., u[0])
+	fc := mm.LinearTransform(0., 10., u[0])
 	lp := mm.LinearTransform(0., 1., u[1])
 	beta := mm.LinearTransform(0., 10., u[2])
 	uzl := mm.LinearTransform(0., 100., u[3]) // upper zone fast flow limit

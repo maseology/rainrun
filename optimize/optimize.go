@@ -2,6 +2,7 @@ package optimize
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -48,11 +49,14 @@ func Optimize(fp, mdl, logfp string) {
 		}()
 	case "DawdyODonnell":
 		func() {
+			if rr.Timestep <= 0. {
+				log.Fatalf("need to set timestep length for Dawdy O'Donnell simulations")
+			}
 			uFinal, _ := glbopt.SCE(ncmplx, 6, rng, genDawdyODonnell, true)
 			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 6, rng, genDawdyODonnell)
 
 			var m rr.Lumper = &rr.DawdyODonnell{}
-			pFinal := sample.DawdyODonnell(uFinal, rr.TS)
+			pFinal := sample.DawdyODonnell(uFinal, rr.Timestep)
 			fmt.Printf("\nfinal parameters: %v\n", pFinal)
 			fmt.Printf("sample space:\t%f\n", uFinal)
 			m.New(pFinal...)
@@ -81,11 +85,15 @@ func Optimize(fp, mdl, logfp string) {
 		}()
 	case "HBV":
 		func() {
+			if rr.Timestep <= 0. {
+				// log.Fatalf("need to set timestep length for HBV simulations")
+				rr.Timestep = 86400.
+			}
 			uFinal, _ := glbopt.SCE(ncmplx, 9, rng, genHBV, true)
 			// uFinal, _ := glbopt.SurrogateRBF(nrbf, 9, rng, genHBV)
 
 			var m rr.Lumper = &rr.HBV{}
-			pFinal := sample.HBV(uFinal, rr.TS)
+			pFinal := sample.HBV(uFinal, rr.Timestep)
 			sp := fmt.Sprintf("\nfinal parameters:\t%.3e\n", pFinal)
 			su := fmt.Sprintf("sample space:\t\t%f\n", uFinal)
 			m.New(pFinal...)
@@ -166,7 +174,7 @@ func permute(fp string) {
 	var m rr.Lumper = &rr.DawdyODonnell{}
 	for i, u := range smpln.Permutations(6, 3) {
 		fmt.Println(i, u)
-		m.New(sample.DawdyODonnell(u, rr.TS)...)
+		m.New(sample.DawdyODonnell(u, rr.Timestep)...)
 		if math.IsNaN(eval(m)) {
 			panic("NaN")
 		}

@@ -32,7 +32,7 @@ func genAtkinson(u []float64) float64 {
 
 func genDawdyODonnell(u []float64) float64 {
 	var m rr.Lumper = &rr.DawdyODonnell{}
-	m.New(sample.DawdyODonnell(u, rr.TS)...)
+	m.New(sample.DawdyODonnell(u, rr.Timestep)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)
@@ -63,7 +63,7 @@ func genGR4J(u []float64) float64 {
 
 func genHBV(u []float64) float64 {
 	var m rr.Lumper = &rr.HBV{}
-	m.New(sample.HBV(u, rainrun.TS)...)
+	m.New(sample.HBV(u, rainrun.Timestep)...)
 	f := eval(m)
 	if math.IsNaN(f) {
 		log.Fatalf("Objective function error, u: %v\n", u)
