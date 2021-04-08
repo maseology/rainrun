@@ -29,7 +29,6 @@ func (m *HBV) New(p ...float64) {
 	m.lakefrac = 0.                     //p[9]                   // lake fraction
 
 	m.tf = transfunc.NewTF(p[8], 0.5, 0.) // MAXBAS: triangular weighted transfer function
-	_ = m.fc
 }
 
 // Update state for daily inputs
