@@ -3,7 +3,7 @@ package rainrun
 import (
 	"fmt"
 
-	"github.com/maseology/mmio"
+	mmplt "github.com/maseology/mmPlot"
 	"github.com/maseology/objfunc"
 )
 
@@ -30,8 +30,8 @@ func EvalPNG(m Lumper) string {
 	stSum := fmt.Sprintf(" y: %.3f\tpet: %.3f\taet: %.3f\trch: %.3f\tro: %.3f\tqobs: %.3f\n", ys*f, es*f, as*f, gs*f, rs*f, qs*f)
 	fmt.Print(stOf)
 	fmt.Print(stSum)
-	mmio.ObsSim("hyd.png", o[365:], s[365:])
-	mmio.ObsSimFDC("fdc.png", o[365:], s[365:])
+	mmplt.ObsSim("hyd.png", o[365:], s[365:])
+	mmplt.ObsSimFDC("fdc.png", o[365:], s[365:])
 	SumHydrograph(o, s, b)
 	SumMonthly(DT, o, s, Timestep, 1.)
 	return stOf + stSum
