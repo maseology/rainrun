@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/im7mortal/UTM"
+	"github.com/maseology/UTM"
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/solirrad"
 	"github.com/maseology/mmio"

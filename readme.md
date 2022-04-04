@@ -1,6 +1,6 @@
 # go rainrun
 
-this go package contains a variety of lumped-parameter, catchment-based contiuous rainfall-runoff models using a common interface.
+this go package contains a variety of lumped-parameter, catchment-based contiuous rainfall-runoff models using a common interface. This package include the ability for Monte Carlo integration and optimization. 
 
 ## Included models
 

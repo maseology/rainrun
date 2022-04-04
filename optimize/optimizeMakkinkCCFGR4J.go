@@ -10,6 +10,7 @@ import (
 	"github.com/maseology/glbopt"
 	"github.com/maseology/goHydro/pet"
 	"github.com/maseology/goHydro/solirrad"
+	mmplt "github.com/maseology/mmPlot"
 	"github.com/maseology/mmio"
 	"github.com/maseology/objfunc"
 	mrg63k3a "github.com/maseology/pnrg/MRG63k3a"
@@ -121,8 +122,8 @@ func MakkinkCCFGR4J(metfp, logfp string) {
 			}
 			f := 366. / float64(len(obs))
 			rr.SumHydrograph(obs, sim, bf)
-			mmio.ObsSim("hyd.png", obs[365:], sim[365:])
-			mmio.ObsSimFDC("fdc.png", obs[365:], sim[365:])
+			mmplt.ObsSim("hyd.png", obs[365:], sim[365:])
+			mmplt.ObsSimFDC("fdc.png", obs[365:], sim[365:])
 			mmio.WriteCSV(mmio.RemoveExtension(metfp)+".hydrograph.csv", "date,y,aet,obs,sim,bf", idt, iy, ia, iob, is, ig)
 			sum1 := fmt.Sprintf(" y: %.3f\tpet: %.3f\taet: %.3f\trch: %.3f\ttmax: %.3f\ttmin: %.3f\tro: %.3f\tqobs: %.3f", ys*f, es*f, as*f, gs*f, txx, tnn, rs*f, qs*f)
 			logger.Println(fmt.Sprintf("\nsta\t%s\n%s\nnam\t%v\nU\t%v\nP\t%v\nKGE\t%f\nNSE\t%f\nmwr2\t%f\nbias\t%f\n", mmio.FileName(metfp, false), sum1, par, uFinal, pFinal, kge, nse, mwr2, bias))

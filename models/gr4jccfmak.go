@@ -38,7 +38,7 @@ func (m *MakkinkCCFGR4J) Update(v []float64, doy int) (y, a, r, g float64) {
 
 	// calculate yield
 	tm := (tx + tn) / 2.
-	y = m.SP.Update(r, s, tm)
+	y, _ = m.SP.Update(r, s, tm)
 
 	// calculate ep
 	ep := func() float64 {
