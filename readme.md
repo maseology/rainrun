@@ -2,6 +2,8 @@
 
 this go package contains a variety of lumped-parameter, catchment-based contiuous rainfall-runoff models using a common interface. This package include the ability for Monte Carlo integration and optimization. 
 
+*deprecated, moved to [goHydro](https://github.com/maseology/goHydro)*
+
 ## Included models
 
 * The Atkinson simple storage model (Atkinson et.al., 2002, 2003; Wittenberg and Sivapalan, 1999)
